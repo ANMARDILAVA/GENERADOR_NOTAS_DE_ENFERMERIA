@@ -1,0 +1,8 @@
+{
+  "name": "Sistema Central de Notas de Enfermería",
+  "description": "Generador inteligente de notas clínicas y asistenciales de enfermería para historia clínica digital, con 12 módulos especializados y funcionamiento 100% local.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

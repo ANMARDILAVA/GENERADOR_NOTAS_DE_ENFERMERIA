@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Centralizado de Notas de Enfermería</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+        .app-view { display: none; animation: fadeIn 0.3s ease-in-out; }
+        #app-menu { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .nota-textarea { background-color: #f8fafc; border-color: #cbd5e1; color: #1e293b; transition: all 0.3s ease; }
+        .nota-textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="p-4 md:p-6 lg:p-8 text-slate-800 antialiased">
+
+    <div class="max-w-[95%] xl:max-w-7xl mx-auto bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100">
+        
+        <!-- CABECERA -->
+        <header class="flex flex-col md:flex-row items-center justify-between pb-6 mb-6 border-b border-slate-200">
+            <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                <div class="bg-blue-600 text-white p-3 rounded-2xl shadow-lg shadow-blue-200">
+                    <ion-icon name="medkit-outline" class="w-8 h-8 text-3xl"></ion-icon>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Sistema Central de Notas</h1>
+                    <p class="text-blue-600 font-bold text-xs tracking-wider uppercase mt-1">Generador Automático para Enfermería</p>
+                </div>
+            </div>
+            <button type="button" id="back-to-menu-btn" onclick="showView('app-menu')" class="app-view hidden items-center px-4 py-2 border border-slate-300 text-sm font-bold rounded-xl shadow-sm text-slate-700 bg-white hover:bg-slate-50 transition">
+                <ion-icon name="arrow-back-outline" class="mr-2"></ion-icon> Volver al Menú Principal
+            </button>
+        </header>
+
+        <!-- MENÚ PRINCIPAL -->
+        <div id="app-menu" class="app-view">
+            <h2 class="text-lg font-bold text-slate-500 uppercase tracking-wide mb-6">Seleccione el módulo a utilizar:</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                
+                <button onclick="showView('app-curacion')" class="text-left p-6 bg-slate-50 hover:bg-blue-50 rounded-2xl shadow-sm border border-slate-200 transition-all transform hover:-translate-y-1">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-blue-600 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="bandage-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-slate-900">Curación</h3><p class="text-sm font-medium text-slate-500 mt-1">Valoración y procedimiento de heridas.</p></div>
+                    </div>
+                </button>
+                
+                <button onclick="showView('app-medicamentos-no-programada')" class="text-left p-6 bg-slate-50 hover:bg-purple-50 rounded-2xl shadow-sm border border-slate-200 transition-all transform hover:-translate-y-1">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-purple-600 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="pulse-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-slate-900">Meds (No Programada)</h3><p class="text-sm font-medium text-slate-500 mt-1">Administración en consulta prioritaria.</p></div>
+                    </div>
+                </button>
+
+                <button onclick="showView('app-medicamentos-ce')" class="text-left p-6 bg-slate-50 hover:bg-teal-50 rounded-2xl shadow-sm border border-slate-200 transition-all transform hover:-translate-y-1">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-teal-600 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="document-attach-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-slate-900">Meds (Consulta Externa)</h3><p class="text-sm font-medium text-slate-500 mt-1">Paciente trae el medicamento (INVIMA).</p></div>
+                    </div>
+                </button>
+
+                <button onclick="showView('app-meds-pediatricos')" class="text-left p-6 bg-slate-50 hover:bg-pink-50 rounded-2xl shadow-sm border border-slate-200 transition-all transform hover:-translate-y-1">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-pink-600 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="balloon-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-slate-900">Meds Pediátricos</h3><p class="text-sm font-medium text-slate-500 mt-1">Administración a menores y acompañantes.</p></div>
+                    </div>
+                </button>
+
+                <button onclick="showView('app-observacion')" class="text-left p-6 bg-slate-50 hover:bg-red-50 rounded-2xl shadow-sm border border-slate-200 transition-all transform hover:-translate-y-1">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-red-600 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="bed-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-slate-900">Observación</h3><p class="text-sm font-medium text-slate-500 mt-1">Ingreso, canalización, y egreso.</p></div>
+                    </div>
+                </button>
+                
+                <button onclick="showView('app-ekg')" class="text-left p-6 bg-slate-50 hover:bg-cyan-50 rounded-2xl shadow-sm border border-slate-200 transition-all transform hover:-translate-y-1">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-cyan-600 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="heart-half-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-slate-900">EKG</h3><p class="text-sm font-medium text-slate-500 mt-1">Registro de toma de EKG.</p></div>
+                    </div>
+                </button>
+
+                <button onclick="showView('app-penicilina')" class="text-left p-6 bg-slate-50 hover:bg-orange-50 rounded-2xl shadow-sm border border-slate-200 transition-all transform hover:-translate-y-1">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-orange-600 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="eyedrop-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-slate-900">Penicilina</h3><p class="text-sm font-medium text-slate-500 mt-1">Prueba de sensibilidad y registro.</p></div>
+                    </div>
+                </button>
+
+                <button onclick="showView('app-retiro-puntos')" class="text-left p-6 bg-slate-50 hover:bg-slate-100 rounded-2xl shadow-sm border border-slate-200 transition-all transform hover:-translate-y-1">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-slate-600 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="cut-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-slate-900">Retiro de Puntos</h3><p class="text-sm font-medium text-slate-500 mt-1">Procedimiento básico de retiro.</p></div>
+                    </div>
+                </button>
+
+                <button onclick="showView('app-procedimientos')" class="text-left p-6 bg-indigo-50 hover:bg-indigo-100 rounded-2xl shadow-sm border border-indigo-200 transition-all transform hover:-translate-y-1 relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 bg-indigo-200 rounded-full w-24 h-24 opacity-50 blur-2xl"></div>
+                    <div class="flex flex-col space-y-4 relative z-10">
+                        <span class="text-4xl text-indigo-600 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="medical-outline"></ion-icon></span>
+                        <div>
+                            <div class="flex items-center space-x-2"><h3 class="text-lg font-bold text-indigo-950">Dermatología</h3><span class="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded font-bold">PREMIUM</span></div>
+                            <p class="text-sm font-medium text-indigo-800/70 mt-1">Biopsias, resecciones, nasolaringo (En Vivo).</p>
+                        </div>
+                    </div>
+                </button>
+
+                <button onclick="showView('app-resonancia')" class="text-left p-6 bg-slate-800 hover:bg-slate-900 rounded-2xl shadow-sm border border-slate-700 transition-all transform hover:-translate-y-1 group">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-slate-800 bg-white p-3 rounded-xl w-fit shadow-sm group-hover:text-blue-600 transition-colors"><ion-icon name="scan-circle-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-white">Resonancia Magnética</h3><p class="text-sm font-medium text-slate-400 mt-1">Simple, Contraste y Hioscina.</p></div>
+                    </div>
+                </button>
+
+                <button onclick="showView('app-tac')" class="text-left p-6 bg-slate-100 hover:bg-slate-200 rounded-2xl shadow-sm border border-slate-300 transition-all transform hover:-translate-y-1">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-slate-700 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="disc-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-slate-900">Tomografía (TAC)</h3><p class="text-sm font-medium text-slate-500 mt-1">Adulto, Pediátrico y con Contraste.</p></div>
+                    </div>
+                </button>
+
+                <button onclick="showView('app-glucometria')" class="text-left p-6 bg-emerald-50 hover:bg-emerald-100 rounded-2xl shadow-sm border border-emerald-200 transition-all transform hover:-translate-y-1">
+                    <div class="flex flex-col space-y-4">
+                        <span class="text-4xl text-emerald-600 bg-white p-3 rounded-xl w-fit shadow-sm"><ion-icon name="water-outline"></ion-icon></span>
+                        <div><h3 class="text-lg font-bold text-emerald-950">Glucometría</h3><p class="text-sm font-medium text-emerald-800/70 mt-1">Toma de glicemia capilar y reporte.</p></div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 1: CURACIÓN                                     -->
+        <!-- ====================================================== -->
+        <div id="app-curacion" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="bandage-outline" class="mr-2 text-blue-600"></ion-icon> Nota de Curación</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form id="curacion-form" class="space-y-6">
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">1. Contexto</legend>
+                        <div class="space-y-4 mt-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Género</label>
+                                <div class="flex items-center space-x-6">
+                                    <label class="flex items-center text-sm font-semibold text-slate-700"><input id="cur-gen-masc" name="cur-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-blue-600 focus:ring-blue-500 mr-2" checked> Masculino</label>
+                                    <label class="flex items-center text-sm font-semibold text-slate-700"><input id="cur-gen-fem" name="cur-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-blue-600 focus:ring-blue-500 mr-2"> Femenino</label>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Área Lesión</label><input type="text" id="cur-area" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-500" oninput="document.getElementById('cur-loc').value=this.value"></div>
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Causa</label><input type="text" id="cur-causa" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-blue-500" oninput="document.getElementById('cur-ori').value=this.value"></div>
+                            </div>
+                            <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                                <label class="flex items-center font-bold text-orange-800 text-sm cursor-pointer"><input id="cur-chk-aler" type="checkbox" class="h-4 w-4 text-orange-600 mr-2" onchange="document.getElementById('cur-aler-div').style.display=this.checked?'block':'none'">Refiere alergias</label>
+                                <div id="cur-aler-div" class="mt-3" style="display: none;"><input type="text" id="cur-aler-esp" placeholder="Ej: Yodo" class="w-full p-2.5 border border-orange-200 rounded-xl text-sm"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="cur-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">2. Valoración y Procedimiento</legend>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Posición</label>
+                                <select id="cur-pos" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold" onchange="document.getElementById('cur-pos-otro').style.display=this.value==='OTRO'?'block':'none'">
+                                    <option value="DECÚBITO SUPINO (O DORSAL)">Decúbito Supino (o dorsal)</option>
+                                    <option value="DECÚBITO PRONO (O VENTRAL)" selected>Decúbito Prono (o ventral)</option>
+                                    <option value="DECÚBITO LATERAL IZQUIERDO">Decúbito Lateral Izquierdo</option>
+                                    <option value="DECÚBITO LATERAL DERECHO">Decúbito Lateral Derecho</option>
+                                    <option value="POSICIÓN DE FOWLER">Posición de Fowler</option>
+                                    <option value="POSICIÓN SEMI-FOWLER">Posición Semi-Fowler</option>
+                                    <option value="POSICIÓN GINECOLÓGICA (O DE LITOTOMÍA)">Posición Ginecológica</option>
+                                    <option value="POSICIÓN DE SIMS">Posición de Sims</option>
+                                    <option value="SENTADO">Sentado</option>
+                                    <option value="OTRO">Otro (especificar)</option>
+                                </select>
+                                <input type="text" id="cur-pos-otro" placeholder="Especificar" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm mt-2" style="display:none;">
+                            </div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tamaño</label><input type="text" id="cur-tam" placeholder="Ej: 5x3 cm" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Localización</label><input type="text" id="cur-loc" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Origen</label><input type="text" id="cur-ori" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Exudado</label><input type="text" id="cur-exu" placeholder="Ej: Seroso" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Infección</label><select id="cur-inf" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold" onchange="document.getElementById('cur-inf-det').style.display=this.value==='Presentes'?'block':'none'"><option value="Ausentes" selected>Ausentes</option><option value="Presentes">Presentes</option></select></div>
+                            <div id="cur-inf-det" class="md:col-span-2" style="display: none;"><input type="text" id="cur-inf-val" placeholder="Detalle Infección" class="w-full p-2.5 border border-red-300 rounded-xl text-sm"></div>
+                            <div class="md:col-span-2"><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Piel Perilesional</label><input type="text" id="cur-piel" value="Íntegra, sin maceración" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                            
+                            <div class="md:col-span-2 border-t border-slate-200 mt-2 pt-4 grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Lavado con</label><input type="text" id="cur-lav" value="Jabón quirúrgico y Solución Salina" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Se coloca</label><input type="text" id="cur-col" placeholder="Ej: Parche" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cubre con</label><input type="text" id="cur-cub" value="Gasa estéril" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Fija con</label><input type="text" id="cur-fij" value="FIXOMULL" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="flex gap-4">
+                        <button type="button" id="cur-gen-btn" class="flex-1 px-6 py-3.5 rounded-xl shadow-lg text-white bg-blue-600 hover:bg-blue-700 font-extrabold text-sm transition"><ion-icon name="create-outline" class="mr-2"></ion-icon> GENERAR</button>
+                        <button type="button" id="cur-clr-btn" class="flex-1 px-6 py-3.5 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 font-bold text-sm transition"><ion-icon name="refresh-outline" class="mr-2"></ion-icon> LIMPIAR</button>
+                    </div>
+                </form>
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Vista Previa</h2>
+                    <div class="relative"><textarea id="cur-out" readonly rows="28" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="cur-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="cur-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2"></ion-icon> COPIAR NOTA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 2: MEDS NO PROGRAMADA                           -->
+        <!-- ====================================================== -->
+        <div id="app-medicamentos-no-programada" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="pulse-outline" class="mr-2 text-purple-600"></ion-icon> Meds (No Programada)</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form id="np-form" class="space-y-6">
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">1. Contexto</legend>
+                        <div class="space-y-4 mt-2">
+                            <div class="flex space-x-6">
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="np-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-purple-600 mr-2" checked> Masculino</label>
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="np-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-purple-600 mr-2"> Femenino</label>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Motivo / Tratamiento</label><input type="text" id="np-mot" placeholder="Motivo" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Anticoagulado</label><select id="np-anti" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"><option value="NO" selected>No Anticoagulado</option><option value="SI">Sí Anticoagulado</option></select></div>
+                            </div>
+                            <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                                <label class="flex items-center font-bold text-orange-800 text-sm cursor-pointer"><input id="np-chk-aler" type="checkbox" class="h-4 w-4 text-orange-600 mr-2" onchange="document.getElementById('np-aler-div').style.display=this.checked?'block':'none'">Refiere alergias</label>
+                                <div id="np-aler-div" class="mt-3" style="display: none;"><input type="text" id="np-aler-esp" class="w-full p-2.5 border border-orange-200 rounded-xl text-sm"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="np-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">2. Medicamentos y Riesgos</legend>
+                        <div class="space-y-4 mt-2">
+                            <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
+                                <h4 class="text-xs font-bold text-purple-700 uppercase">Med 1</h4>
+                                <input type="text" id="np-m1" placeholder="Nombre Med 1" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <input type="text" id="np-d1" placeholder="Dosis" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                    <input type="text" id="np-v1" value="INTRAMUSCULAR" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                    <div class="space-y-1">
+                                        <select id="np-s1" class="w-full p-2 border border-slate-300 rounded-lg text-sm" onchange="document.getElementById('np-s1-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                            <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO DERECHO" selected>Glúteo Derecho</option>
+                                            <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO IZQUIERDO">Glúteo Izquierdo</option>
+                                            <option value="DELTOIDES DERECHO">Deltoides Derecho</option>
+                                            <option value="DELTOIDES IZQUIERDO">Deltoides Izquierdo</option>
+                                            <option value="OTRO">OTRO...</option>
+                                        </select>
+                                        <input type="text" id="np-s1-otro" placeholder="Especificar" class="w-full p-2 border border-slate-300 rounded-lg text-sm" style="display: none;">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-purple-50 p-3 rounded-xl border border-purple-100">
+                                <label class="flex items-center font-bold text-purple-800 text-sm cursor-pointer"><input id="np-chk-m2" type="checkbox" class="h-4 w-4 text-purple-600 mr-2" onchange="document.getElementById('np-m2-div').style.display=this.checked?'block':'none'">Añadir 2do medicamento</label>
+                                <div id="np-m2-div" class="mt-3 space-y-2 bg-white p-3 rounded-lg border border-purple-200" style="display: none;">
+                                    <input type="text" id="np-m2" placeholder="Nombre Med 2" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <input type="text" id="np-d2" placeholder="Dosis" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                        <input type="text" id="np-v2" value="INTRAMUSCULAR" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                        <div class="space-y-1">
+                                            <select id="np-s2" class="w-full p-2 border border-slate-300 rounded-lg text-sm" onchange="document.getElementById('np-s2-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                                <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO DERECHO">Glúteo Derecho</option>
+                                                <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO IZQUIERDO" selected>Glúteo Izquierdo</option>
+                                                <option value="DELTOIDES DERECHO">Deltoides Derecho</option>
+                                                <option value="DELTOIDES IZQUIERDO">Deltoides Izquierdo</option>
+                                                <option value="OTRO">OTRO...</option>
+                                            </select>
+                                            <input type="text" id="np-s2-otro" placeholder="Especificar" class="w-full p-2 border border-slate-300 rounded-lg text-sm" style="display: none;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 pt-4 border-t border-slate-200">
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Cubículo</label><input type="number" id="np-cub" value="1" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Posición del Paciente</label>
+                                    <div class="space-y-1">
+                                        <select id="np-pos" class="w-full p-2 border border-slate-300 rounded-lg text-xs" onchange="document.getElementById('np-pos-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                            <option value="DECÚBITO SUPINO (O DORSAL)">Decúbito Supino (o dorsal)</option>
+                                            <option value="DECÚBITO PRONO (O VENTRAL)" selected>Decúbito Prono (o ventral)</option>
+                                            <option value="DECÚBITO LATERAL IZQUIERDO">Decúbito Lateral Izquierdo</option>
+                                            <option value="DECÚBITO LATERAL DERECHO">Decúbito Lateral Derecho</option>
+                                            <option value="POSICIÓN DE FOWLER">Posición de Fowler</option>
+                                            <option value="POSICIÓN SEMI-FOWLER">Posición Semi-Fowler</option>
+                                            <option value="POSICIÓN GINECOLÓGICA (O DE LITOTOMÍA)">Posición Ginecológica (o de litotomía)</option>
+                                            <option value="POSICIÓN DE SIMS">Posición de Sims</option>
+                                            <option value="SENTADO">Sentado</option>
+                                            <option value="OTRO">Otro (especificar)</option>
+                                        </select>
+                                        <input type="text" id="np-pos-otro" placeholder="Especificar" class="w-full p-2 border border-slate-300 rounded-lg text-xs" style="display: none;">
+                                    </div>
+                                </div>
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">R. Caída</label><select id="np-rc" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"><option value="RIESGO BAJO" selected>BAJO</option><option value="RIESGO MEDIO">MEDIO</option><option value="RIESGO ALTO">ALTO</option></select></div>
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">R. Piel</label><select id="np-rp" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"><option value="RIESGO BAJO" selected>BAJO</option><option value="RIESGO MEDIO">MEDIO</option><option value="RIESGO ALTO">ALTO</option></select></div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="flex gap-4">
+                        <button type="button" id="np-gen-btn" class="flex-1 px-6 py-3.5 rounded-xl shadow-lg text-white bg-purple-600 hover:bg-purple-700 font-extrabold text-sm transition"><ion-icon name="create-outline" class="mr-2"></ion-icon> GENERAR</button>
+                        <button type="button" id="np-clr-btn" class="flex-1 px-6 py-3.5 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 font-bold text-sm transition"><ion-icon name="refresh-outline" class="mr-2"></ion-icon> LIMPIAR</button>
+                    </div>
+                </form>
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Vista Previa</h2>
+                    <div class="relative"><textarea id="np-out" readonly rows="28" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="np-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="np-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2"></ion-icon> COPIAR NOTA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 3: MEDS CE (INVIMA)                             -->
+        <!-- ====================================================== -->
+        <div id="app-medicamentos-ce" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="document-attach-outline" class="mr-2 text-teal-600"></ion-icon> Meds (Consulta Externa)</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form id="ce-form" class="space-y-6">
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">1. Contexto</legend>
+                        <div class="space-y-4 mt-2">
+                            <div class="flex space-x-6">
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="ce-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-teal-600 mr-2" checked> Masculino</label>
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="ce-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-teal-600 mr-2"> Femenino</label>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Motivo / Tratamiento</label><input type="text" id="ce-mot" placeholder="Motivo" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Anticoagulado</label><select id="ce-anti" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"><option value="NO" selected>No Anticoagulado</option><option value="SI">Sí Anticoagulado</option></select></div>
+                            </div>
+                            <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                                <label class="flex items-center font-bold text-orange-800 text-sm cursor-pointer"><input id="ce-chk-aler" type="checkbox" class="h-4 w-4 text-orange-600 mr-2" onchange="document.getElementById('ce-aler-div').style.display=this.checked?'block':'none'">Refiere alergias</label>
+                                <div id="ce-aler-div" class="mt-3" style="display: none;"><input type="text" id="ce-aler-esp" class="w-full p-2.5 border border-orange-200 rounded-xl text-sm"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="ce-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">2. Datos de Seguridad (INVIMA) y Riesgos</legend>
+                        <div class="space-y-4 mt-2">
+                            <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
+                                <h4 class="text-xs font-bold text-teal-700 uppercase">Med 1</h4>
+                                <input type="text" id="ce-m1" placeholder="Nombre Med 1" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <input type="text" id="ce-d1" placeholder="Dosis" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                    <input type="text" id="ce-v1" value="INTRAMUSCULAR" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                    <div class="space-y-1">
+                                        <select id="ce-s1" class="w-full p-2 border border-slate-300 rounded-lg text-sm" onchange="document.getElementById('ce-s1-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                            <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO DERECHO" selected>Glúteo Derecho</option>
+                                            <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO IZQUIERDO">Glúteo Izquierdo</option>
+                                            <option value="DELTOIDES DERECHO">Deltoides Derecho</option>
+                                            <option value="DELTOIDES IZQUIERDO">Deltoides Izquierdo</option>
+                                            <option value="OTRO">OTRO...</option>
+                                        </select>
+                                        <input type="text" id="ce-s1-otro" placeholder="Especificar" class="w-full p-2 border border-slate-300 rounded-lg text-sm" style="display: none;">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <input type="text" id="ce-l1" placeholder="Lote" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                    <input type="date" id="ce-f1" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                    <input type="text" id="ce-i1" placeholder="INVIMA" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                </div>
+                            </div>
+                            
+                            <div class="bg-teal-50 p-3 rounded-xl border border-teal-100">
+                                <label class="flex items-center font-bold text-teal-800 text-sm cursor-pointer"><input id="ce-chk-m2" type="checkbox" class="h-4 w-4 text-teal-600 mr-2" onchange="document.getElementById('ce-m2-div').style.display=this.checked?'block':'none'">Añadir 2do medicamento</label>
+                                <div id="ce-m2-div" class="mt-3 space-y-2 bg-white p-3 rounded-lg border border-teal-200" style="display: none;">
+                                    <input type="text" id="ce-m2" placeholder="Nombre Med 2" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <input type="text" id="ce-d2" placeholder="Dosis" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                        <input type="text" id="ce-v2" value="INTRAMUSCULAR" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                        <div class="space-y-1">
+                                            <select id="ce-s2" class="w-full p-2 border border-slate-300 rounded-lg text-sm" onchange="document.getElementById('ce-s2-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                                <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO DERECHO">Glúteo Derecho</option>
+                                                <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO IZQUIERDO" selected>Glúteo Izquierdo</option>
+                                                <option value="DELTOIDES DERECHO">Deltoides Derecho</option>
+                                                <option value="DELTOIDES IZQUIERDO">Deltoides Izquierdo</option>
+                                                <option value="OTRO">OTRO...</option>
+                                            </select>
+                                            <input type="text" id="ce-s2-otro" placeholder="Especificar" class="w-full p-2 border border-slate-300 rounded-lg text-sm" style="display: none;">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <input type="text" id="ce-l2" placeholder="Lote" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                        <input type="date" id="ce-f2" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                        <input type="text" id="ce-i2" placeholder="INVIMA" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 pt-4 border-t border-slate-200">
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Cubículo</label><input type="number" id="ce-cub" value="1" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Posición del Paciente</label>
+                                    <div class="space-y-1">
+                                        <select id="ce-pos" class="w-full p-2 border border-slate-300 rounded-lg text-xs" onchange="document.getElementById('ce-pos-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                            <option value="DECÚBITO SUPINO (O DORSAL)">Decúbito Supino (o dorsal)</option>
+                                            <option value="DECÚBITO PRONO (O VENTRAL)" selected>Decúbito Prono (o ventral)</option>
+                                            <option value="DECÚBITO LATERAL IZQUIERDO">Decúbito Lateral Izquierdo</option>
+                                            <option value="DECÚBITO LATERAL DERECHO">Decúbito Lateral Derecho</option>
+                                            <option value="POSICIÓN DE FOWLER">Posición de Fowler</option>
+                                            <option value="POSICIÓN SEMI-FOWLER">Posición Semi-Fowler</option>
+                                            <option value="POSICIÓN GINECOLÓGICA (O DE LITOTOMÍA)">Posición Ginecológica (o de litotomía)</option>
+                                            <option value="POSICIÓN DE SIMS">Posición de Sims</option>
+                                            <option value="SENTADO">Sentado</option>
+                                            <option value="OTRO">Otro (especificar)</option>
+                                        </select>
+                                        <input type="text" id="ce-pos-otro" placeholder="Especificar" class="w-full p-2 border border-slate-300 rounded-lg text-xs" style="display: none;">
+                                    </div>
+                                </div>
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">R. Caída</label><select id="ce-rc" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"><option value="RIESGO BAJO" selected>BAJO</option><option value="RIESGO MEDIO">MEDIO</option><option value="RIESGO ALTO">ALTO</option></select></div>
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">R. Piel</label><select id="ce-rp" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"><option value="RIESGO BAJO" selected>BAJO</option><option value="RIESGO MEDIO">MEDIO</option><option value="RIESGO ALTO">ALTO</option></select></div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="flex gap-4">
+                        <button type="button" id="ce-gen-btn" class="flex-1 px-6 py-3.5 rounded-xl shadow-lg text-white bg-teal-600 hover:bg-teal-700 font-extrabold text-sm transition"><ion-icon name="create-outline" class="mr-2"></ion-icon> GENERAR</button>
+                        <button type="button" id="ce-clr-btn" class="flex-1 px-6 py-3.5 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 font-bold text-sm transition"><ion-icon name="refresh-outline" class="mr-2"></ion-icon> LIMPIAR</button>
+                    </div>
+                </form>
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Vista Previa</h2>
+                    <div class="relative"><textarea id="ce-out" readonly rows="28" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="ce-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="ce-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2"></ion-icon> COPIAR NOTA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 4: MEDS PEDIÁTRICOS                             -->
+        <!-- ====================================================== -->
+        <div id="app-meds-pediatricos" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="balloon-outline" class="mr-2 text-pink-600"></ion-icon> Medicamentos Pediátricos</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form id="ped-form" class="space-y-6">
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">1. Contexto</legend>
+                        <div class="space-y-4 mt-2">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Acompañante</label><select id="ped-acomp" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold bg-white" onchange="document.getElementById('ped-acomp-otro').style.display=this.value==='OTRO'?'block':'none'"><option value="MADRE" selected>MADRE</option><option value="PADRE">PADRE</option><option value="ABUELO/A">ABUELO/A</option><option value="TUTOR LEGAL">TUTOR LEGAL</option><option value="OTRO">OTRO</option></select><input type="text" id="ped-acomp-otro" placeholder="Especifique" class="w-full p-2 border border-slate-300 rounded-lg text-sm mt-2" style="display:none;"></div>
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Motivo</label><input type="text" id="ped-mot" placeholder="Motivo consulta" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                            </div>
+                            <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                                <label class="flex items-center font-bold text-orange-800 text-sm cursor-pointer"><input id="ped-chk-aler" type="checkbox" class="h-4 w-4 text-orange-600 mr-2" onchange="document.getElementById('ped-aler-div').style.display=this.checked?'block':'none'">Refiere alergias</label>
+                                <div id="ped-aler-div" class="mt-3" style="display: none;"><input type="text" id="ped-aler-esp" class="w-full p-2.5 border border-orange-200 rounded-xl text-sm"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="ped-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">2. Medicamentos y Riesgos</legend>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <div class="col-span-2">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <input type="text" id="ped-m1" placeholder="Nombre Med 1" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-semibold">
+                                    <input type="text" id="ped-d1" placeholder="Dosis" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
+                                    <input type="text" id="ped-v1" value="INTRAMUSCULAR" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm">
+                                </div>
+                                <div class="mt-2 space-y-1">
+                                    <select id="ped-s1" class="w-full p-2 border border-slate-300 rounded-lg text-sm" onchange="document.getElementById('ped-s1-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                        <option value="CARA ANTEROLATERAL TERCIO MEDIO DEL MUSLO DERECHO" selected>Muslo Derecho (Anterolateral)</option>
+                                        <option value="CARA ANTEROLATERAL TERCIO MEDIO DEL MUSLO IZQUIERDO">Muslo Izquierdo (Anterolateral)</option>
+                                        <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO DERECHO">Glúteo Derecho</option>
+                                        <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO IZQUIERDO">Glúteo Izquierdo</option>
+                                        <option value="DELTOIDES DERECHO">Deltoides Derecho</option>
+                                        <option value="DELTOIDES IZQUIERDO">Deltoides Izquierdo</option>
+                                        <option value="OTRO">OTRO...</option>
+                                    </select>
+                                    <input type="text" id="ped-s1-otro" placeholder="Especificar" class="w-full p-2 border border-slate-300 rounded-lg text-sm" style="display: none;">
+                                </div>
+                            </div>
+                            
+                            <div class="col-span-2 bg-pink-50 p-3 rounded-xl border border-pink-100">
+                                <label class="flex items-center font-bold text-pink-800 text-sm cursor-pointer"><input id="ped-chk-m2" type="checkbox" class="h-4 w-4 text-pink-600 mr-2" onchange="document.getElementById('ped-m2-div').style.display=this.checked?'block':'none'">Añadir 2do medicamento</label>
+                                <div id="ped-m2-div" class="mt-3 space-y-2 bg-white p-3 rounded-lg border border-pink-200" style="display: none;">
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <input type="text" id="ped-m2" placeholder="Nombre Med 2" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                        <input type="text" id="ped-d2" placeholder="Dosis" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                        <input type="text" id="ped-v2" value="INTRAMUSCULAR" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <select id="ped-s2" class="w-full p-2 border border-slate-300 rounded-lg text-sm" onchange="document.getElementById('ped-s2-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                            <option value="CARA ANTEROLATERAL TERCIO MEDIO DEL MUSLO DERECHO">Muslo Derecho (Anterolateral)</option>
+                                            <option value="CARA ANTEROLATERAL TERCIO MEDIO DEL MUSLO IZQUIERDO" selected>Muslo Izquierdo (Anterolateral)</option>
+                                            <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO DERECHO">Glúteo Derecho</option>
+                                            <option value="CUADRANTE SUPERIOR EXTERNO DEL GLUTEO IZQUIERDO">Glúteo Izquierdo</option>
+                                            <option value="DELTOIDES DERECHO">Deltoides Derecho</option>
+                                            <option value="DELTOIDES IZQUIERDO">Deltoides Izquierdo</option>
+                                            <option value="OTRO">OTRO...</option>
+                                        </select>
+                                        <input type="text" id="ped-s2-otro" placeholder="Especificar" class="w-full p-2 border border-slate-300 rounded-lg text-sm" style="display: none;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-2 mt-2 border-t border-slate-200 pt-4">
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Cubículo</label><input type="number" id="ped-cub" value="1" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"></div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Posición del Paciente</label>
+                                    <div class="space-y-1">
+                                        <select id="ped-pos" class="w-full p-2 border border-slate-300 rounded-lg text-xs" onchange="document.getElementById('ped-pos-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                            <option value="DECÚBITO SUPINO (O DORSAL)">Decúbito Supino (o dorsal)</option>
+                                            <option value="DECÚBITO PRONO (O VENTRAL)" selected>Decúbito Prono (o ventral)</option>
+                                            <option value="DECÚBITO LATERAL IZQUIERDO">Decúbito Lateral Izquierdo</option>
+                                            <option value="DECÚBITO LATERAL DERECHO">Decúbito Lateral Derecho</option>
+                                            <option value="POSICIÓN DE FOWLER">Posición de Fowler</option>
+                                            <option value="POSICIÓN SEMI-FOWLER">Posición Semi-Fowler</option>
+                                            <option value="POSICIÓN GINECOLÓGICA (O DE LITOTOMÍA)">Posición Ginecológica (o de litotomía)</option>
+                                            <option value="POSICIÓN DE SIMS">Posición de Sims</option>
+                                            <option value="SENTADO">Sentado</option>
+                                            <option value="OTRO">Otro (especificar)</option>
+                                        </select>
+                                        <input type="text" id="ped-pos-otro" placeholder="Especificar" class="w-full p-2 border border-slate-300 rounded-lg text-xs" style="display: none;">
+                                    </div>
+                                </div>
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">R. Caída</label><select id="ped-rc" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"><option value="RIESGO BAJO" selected>BAJO</option><option value="RIESGO MEDIO">MEDIO</option><option value="RIESGO ALTO">ALTO</option></select></div>
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">R. Piel</label><select id="ped-rp" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"><option value="RIESGO BAJO" selected>BAJO</option><option value="RIESGO MEDIO">MEDIO</option><option value="RIESGO ALTO">ALTO</option></select></div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="flex gap-4">
+                        <button type="button" id="ped-gen-btn" class="flex-1 px-6 py-3.5 rounded-xl shadow-lg text-white bg-pink-600 hover:bg-pink-700 font-extrabold text-sm transition"><ion-icon name="create-outline" class="mr-2"></ion-icon> GENERAR</button>
+                        <button type="button" id="ped-clr-btn" class="flex-1 px-6 py-3.5 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 font-bold text-sm transition"><ion-icon name="refresh-outline" class="mr-2"></ion-icon> LIMPIAR</button>
+                    </div>
+                </form>
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Vista Previa</h2>
+                    <div class="relative"><textarea id="ped-out" readonly rows="28" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="ped-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="ped-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2"></ion-icon> COPIAR NOTA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 5: OBSERVACIÓN                                  -->
+        <!-- ====================================================== -->
+        <div id="app-observacion" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="bed-outline" class="mr-2 text-red-600"></ion-icon> Observación</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <div class="space-y-6">
+                    <form id="obs-form-ingreso" class="space-y-4 border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1 mb-2">1. Ingreso y Canalización</legend>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2 flex space-x-6">
+                                <label class="flex items-center text-sm font-semibold"><input name="obs-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-red-600 mr-2" checked> Masculino</label>
+                                <label class="flex items-center text-sm font-semibold"><input name="obs-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-red-600 mr-2"> Femenino</label>
+                            </div>
+                            <input type="text" id="obs-med-ref" placeholder="Médico refiere" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            <input type="text" id="obs-mot" placeholder="Tratamiento para" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            <div class="col-span-2 flex space-x-2">
+                                <input type="text" id="obs-m1" placeholder="Med 1 a administrar" class="w-2/3 p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                                <input type="number" id="obs-d1" value="250" placeholder="Dilución ML" class="w-1/3 p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            </div>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-xl border border-red-100">
+                            <label class="flex items-center font-bold text-red-800 text-sm cursor-pointer"><input id="obs-chk-m2" type="checkbox" class="h-4 w-4 text-red-600 mr-2" onchange="document.getElementById('obs-m2-div').style.display=this.checked?'flex':'none'">2do Med al ingreso</label>
+                            <div id="obs-m2-div" class="mt-3 space-x-2" style="display: none;">
+                                <input type="text" id="obs-m2" placeholder="Med 2" class="w-2/3 p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                                <input type="number" id="obs-d2" value="100" placeholder="Dilución ML" class="w-1/3 p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            </div>
+                        </div>
+                        <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                            <label class="flex items-center font-bold text-orange-800 text-sm cursor-pointer"><input id="obs-chk-aler" type="checkbox" class="h-4 w-4 text-orange-600 mr-2" onchange="document.getElementById('obs-aler-div').style.display=this.checked?'block':'none'">Refiere alergias</label>
+                            <div id="obs-aler-div" class="mt-3" style="display: none;"><input type="text" id="obs-aler-esp" class="w-full p-2.5 border border-orange-200 rounded-xl text-sm"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                            <select id="obs-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                        </div>
+
+                        <div class="border-t border-slate-200 pt-4 grid grid-cols-3 gap-2">
+                            <select id="obs-svi" class="col-span-2 w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold" onchange="document.getElementById('obs-svi-btn').style.display=this.value==='ALTERADOS'?'inline-flex':'none'"><option value="NORMALES" selected>S.V Iniciales NORMALES</option><option value="ALTERADOS">ALTERADOS</option></select>
+                            <button type="button" id="obs-svi-btn" onclick="openObsModal('ini')" class="hidden bg-yellow-400 text-slate-800 font-bold rounded-xl text-xs">Registrar</button>
+                            <input type="text" id="obs-sintomas" placeholder="Síntomas presentados" class="col-span-3 w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            <div class="col-span-3">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Posición del Paciente</label>
+                                <select id="obs-pos" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold" onchange="document.getElementById('obs-pos-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                    <option value="DECÚBITO SUPINO (O DORSAL)" selected>Decúbito Supino (o dorsal)</option>
+                                    <option value="DECÚBITO PRONO (O VENTRAL)">Decúbito Prono (o ventral)</option>
+                                    <option value="DECÚBITO LATERAL IZQUIERDO">Decúbito Lateral Izquierdo</option>
+                                    <option value="DECÚBITO LATERAL DERECHO">Decúbito Lateral Derecho</option>
+                                    <option value="POSICIÓN DE FOWLER">Posición de Fowler</option>
+                                    <option value="POSICIÓN SEMI-FOWLER">Posición Semi-Fowler</option>
+                                    <option value="POSICIÓN GINECOLÓGICA (O DE LITOTOMÍA)">Posición Ginecológica (o de litotomía)</option>
+                                    <option value="POSICIÓN DE SIMS">Posición de Sims</option>
+                                    <option value="SENTADO">Sentado</option>
+                                    <option value="OTRO">Otro (especificar)</option>
+                                </select>
+                                <input type="text" id="obs-pos-otro" placeholder="Especificar" class="w-full mt-1 p-2.5 border border-slate-300 rounded-xl text-xs font-semibold" style="display: none;">
+                            </div>
+                            <select id="obs-rc" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold"><option value="RIESGO BAJO">R. Caída BAJO</option><option value="RIESGO MEDIO">MEDIO</option><option value="RIESGO ALTO">ALTO</option></select>
+                            <select id="obs-rp" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold"><option value="RIESGO BAJO">R. Piel BAJO</option><option value="RIESGO MEDIO">MEDIO</option><option value="RIESGO ALTO">ALTO</option></select>
+                            <input type="text" id="obs-dolor" value="Dolor 0/10" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold">
+                        </div>
+
+                        <div class="border-t border-slate-200 pt-4 grid grid-cols-2 gap-2">
+                            <select id="obs-miembro" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold"><option value="DERECHO">M. Sup. DERECHO</option><option value="IZQUIERDO">IZQUIERDO</option></select>
+                            <input type="text" id="obs-vena" placeholder="Vena" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold">
+                            <select id="obs-yelco" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold"><option value="18">Yelco 18</option><option value="20" selected>Yelco 20</option><option value="22">Yelco 22</option></select>
+                            <select id="obs-pun" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs font-semibold"><option value="ÚNICA PUNCIÓN">ÚNICA PUNCIÓN</option><option value="MÚLTIPLES">MÚLTIPLES</option></select>
+                        </div>
+                        <button type="button" id="obs-gen-ing-btn" class="w-full py-3.5 rounded-xl shadow-lg text-white bg-red-600 hover:bg-red-700 font-extrabold text-sm"><ion-icon name="log-in-outline" class="mr-2"></ion-icon> GENERAR INGRESO</button>
+                    </form>
+
+                    <form id="obs-form-adi" class="space-y-4 border border-indigo-200 p-5 rounded-2xl bg-indigo-50/50">
+                        <legend class="text-sm font-bold text-indigo-700 px-3 uppercase bg-white rounded-lg border border-indigo-200 py-1 mb-2">2. Nota Adicional</legend>
+                        <div class="flex space-x-2">
+                            <input type="text" id="obs-adi-m" placeholder="Siguiente Med" class="w-2/3 p-2.5 border border-indigo-200 rounded-xl text-sm font-semibold">
+                            <input type="number" id="obs-adi-d" value="100" placeholder="Dilución" class="w-1/3 p-2.5 border border-indigo-200 rounded-xl text-sm font-semibold">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Posición del Paciente</label>
+                                <select id="obs-adi-pos" class="w-full p-2.5 border border-indigo-200 rounded-xl text-sm font-semibold" onchange="document.getElementById('obs-adi-pos-otro').style.display = this.value === 'OTRO' ? 'block' : 'none'">
+                                    <option value="DECÚBITO SUPINO (O DORSAL)" selected>Decúbito Supino (o dorsal)</option>
+                                    <option value="DECÚBITO PRONO (O VENTRAL)">Decúbito Prono (o ventral)</option>
+                                    <option value="DECÚBITO LATERAL IZQUIERDO">Decúbito Lateral Izquierdo</option>
+                                    <option value="DECÚBITO LATERAL DERECHO">Decúbito Lateral Derecho</option>
+                                    <option value="POSICIÓN DE FOWLER">Posición de Fowler</option>
+                                    <option value="POSICIÓN SEMI-FOWLER">Posición Semi-Fowler</option>
+                                    <option value="POSICIÓN GINECOLÓGICA (O DE LITOTOMÍA)">Posición Ginecológica (o de litotomía)</option>
+                                    <option value="POSICIÓN DE SIMS">Posición de Sims</option>
+                                    <option value="SENTADO">Sentado</option>
+                                    <option value="OTRO">Otro (especificar)</option>
+                                </select>
+                                <input type="text" id="obs-adi-pos-otro" placeholder="Especificar" class="w-full mt-1 p-2.5 border border-indigo-200 rounded-xl text-sm font-semibold" style="display: none;">
+                            </div>
+                            <input type="number" id="obs-adi-cub" value="1" placeholder="Cubículo" class="col-span-2 w-full p-2.5 border border-indigo-200 rounded-xl text-sm font-semibold">
+                        </div>
+                        <button type="button" id="obs-gen-adi-btn" class="w-full py-3.5 rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 font-bold text-sm"><ion-icon name="add-circle-outline" class="mr-2"></ion-icon> AÑADIR NOTA</button>
+                    </form>
+
+                    <form id="obs-form-egr" class="space-y-4 border border-emerald-200 p-5 rounded-2xl bg-emerald-50/50">
+                        <legend class="text-sm font-bold text-emerald-700 px-3 uppercase bg-white rounded-lg border border-emerald-200 py-1 mb-2">3. Egreso</legend>
+                        <input type="text" id="obs-egr-med" placeholder="Médico da Salida" class="w-full p-2.5 border border-emerald-200 rounded-xl text-sm font-semibold">
+                        <div class="flex space-x-2">
+                            <select id="obs-svf" class="w-2/3 p-2.5 border border-emerald-200 rounded-xl text-sm font-semibold" onchange="document.getElementById('obs-svf-btn').style.display=this.value==='ALTERADOS'?'inline-flex':'none'"><option value="NORMALES">S.V Finales NORMALES</option><option value="ALTERADOS">ALTERADOS</option></select>
+                            <button type="button" id="obs-svf-btn" onclick="openObsModal('fin')" class="hidden w-1/3 bg-yellow-400 text-slate-800 font-bold rounded-xl text-xs">Registrar</button>
+                        </div>
+                        <select id="obs-egr-ret" class="w-full p-2.5 border border-emerald-200 rounded-xl text-sm font-semibold"><option value="SIN NOVEDAD">Retiro Yelco: SIN NOVEDAD</option><option value="SANGRADO">SANGRADO</option></select>
+                        <button type="button" id="obs-gen-egr-btn" class="w-full py-3.5 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm"><ion-icon name="log-out-outline" class="mr-2"></ion-icon> GENERAR EGRESO</button>
+                    </form>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center"><h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Nota en Progreso</h2><button type="button" id="obs-clr-btn" class="px-3 py-1.5 border border-slate-300 text-xs font-bold rounded-lg bg-white hover:bg-slate-50"><ion-icon name="trash"></ion-icon> LIMPIAR TODO</button></div>
+                    <div class="relative"><textarea id="obs-out" rows="35" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="obs-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="obs-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-slate-800 hover:bg-slate-900 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2 text-xl"></ion-icon> COPIAR NOTA FINAL</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 6: EKG                                          -->
+        <!-- ====================================================== -->
+        <div id="app-ekg" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="heart-half-outline" class="mr-2 text-cyan-600"></ion-icon> EKG</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form id="ekg-form" class="space-y-6">
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">Contexto</legend>
+                        <div class="space-y-4 mt-2">
+                            <div class="flex space-x-6">
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="ekg-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-cyan-600 mr-2" checked> Masculino</label>
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="ekg-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-cyan-600 mr-2"> Femenino</label>
+                            </div>
+                            <input type="text" id="ekg-env" placeholder="Enviado por" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            <input type="text" id="ekg-mot" placeholder="Motivo" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="ekg-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="flex gap-4">
+                        <button type="button" id="ekg-gen-btn" class="flex-1 px-6 py-3.5 rounded-xl shadow-lg text-white bg-cyan-600 hover:bg-cyan-700 font-extrabold text-sm transition"><ion-icon name="create-outline" class="mr-2"></ion-icon> GENERAR</button>
+                        <button type="button" id="ekg-clr-btn" class="flex-1 px-6 py-3.5 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 font-bold text-sm transition"><ion-icon name="refresh-outline" class="mr-2"></ion-icon> LIMPIAR</button>
+                    </div>
+                </form>
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Vista Previa</h2>
+                    <div class="relative"><textarea id="ekg-out" readonly rows="20" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="ekg-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="ekg-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2 text-xl"></ion-icon> COPIAR NOTA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 7: PENICILINA                                   -->
+        <!-- ====================================================== -->
+        <div id="app-penicilina" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="eyedrop-outline" class="mr-2 text-orange-600"></ion-icon> Penicilina</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form id="pen-form" class="space-y-6">
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">Contexto y Procedimiento</legend>
+                        <div class="space-y-4 mt-2">
+                            <div class="flex space-x-6">
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="pen-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-orange-600 mr-2" checked> Masculino</label>
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="pen-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-orange-600 mr-2"> Femenino</label>
+                            </div>
+                            <input type="text" id="pen-mot" placeholder="Motivo" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                                <label class="flex items-center font-bold text-orange-800 text-sm cursor-pointer"><input id="pen-chk-aler" type="checkbox" class="h-4 w-4 text-orange-600 mr-2" onchange="document.getElementById('pen-aler-div').style.display=this.checked?'block':'none'">Alergias (Dif. a Penicilina)</label>
+                                <div id="pen-aler-div" class="mt-3" style="display: none;"><input type="text" id="pen-aler-esp" class="w-full p-2.5 border border-orange-200 rounded-xl text-sm"></div>
+                            </div>
+                            <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                                <label class="flex items-center font-bold text-blue-800 text-sm cursor-pointer"><input id="pen-chk-seg" type="checkbox" class="h-4 w-4 text-blue-600 mr-2" onchange="document.getElementById('pen-seg-div').style.display=this.checked?'grid':'none'">Datos de seguridad (INVIMA)</label>
+                                <div id="pen-seg-div" class="mt-3 grid grid-cols-2 gap-2" style="display: none;">
+                                    <input type="text" id="pen-lote" placeholder="Lote" class="w-full p-2.5 border border-blue-200 rounded-xl text-sm">
+                                    <input type="date" id="pen-f" class="w-full p-2.5 border border-blue-200 rounded-xl text-sm">
+                                    <input type="text" id="pen-inv" placeholder="INVIMA" class="col-span-2 w-full p-2.5 border border-blue-200 rounded-xl text-sm">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Prueba Sensibilidad</label><select id="pen-pru" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm"><option value="MIEMBRO SUPERIOR DERECHO">M.S. DERECHO</option><option value="MIEMBRO SUPERIOR IZQUIERDO">M.S. IZQUIERDO</option></select></div>
+                                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Sitio Terapia</label><select id="pen-apl" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm"><option value="GLUTEO DERECHO">GLUTEO DERECHO</option><option value="GLUTEO IZQUIERDO">GLUTEO IZQUIERDO</option></select></div>
+                            </div>
+                            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cubículo</label><input type="number" id="pen-cub" value="1" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm"></div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="pen-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="flex gap-4">
+                        <button type="button" id="pen-gen-btn" class="flex-1 px-6 py-3.5 rounded-xl shadow-lg text-white bg-orange-600 hover:bg-orange-700 font-extrabold text-sm transition"><ion-icon name="create-outline" class="mr-2"></ion-icon> GENERAR</button>
+                        <button type="button" id="pen-clr-btn" class="flex-1 px-6 py-3.5 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 font-bold text-sm transition"><ion-icon name="refresh-outline" class="mr-2"></ion-icon> LIMPIAR</button>
+                    </div>
+                </form>
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Vista Previa</h2>
+                    <div class="relative"><textarea id="pen-out" readonly rows="25" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="pen-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="pen-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2 text-xl"></ion-icon> COPIAR NOTA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 8: RETIRO DE PUNTOS                             -->
+        <!-- ====================================================== -->
+        <div id="app-retiro-puntos" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="cut-outline" class="mr-2 text-slate-600"></ion-icon> Retiro de Puntos</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form id="ret-form" class="space-y-6">
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">Contexto</legend>
+                        <div class="space-y-4 mt-2">
+                            <div class="flex space-x-6">
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="ret-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-slate-600 mr-2" checked> Masculino</label>
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="ret-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-slate-600 mr-2"> Femenino</label>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="ret-ub" placeholder="Zona (Ej: Mentón)" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                                <input type="number" id="ret-can" placeholder="Cantidad de puntos" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                                <select id="ret-pos" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm"><option value="SUPINO">SUPINO</option><option value="PRONO">PRONO</option><option value="SENTADO">SENTADO</option></select>
+                                <input type="number" id="ret-cub" value="1" placeholder="Cubículo" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="ret-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="flex gap-4">
+                        <button type="button" id="ret-gen-btn" class="flex-1 px-6 py-3.5 rounded-xl shadow-lg text-white bg-slate-600 hover:bg-slate-700 font-extrabold text-sm transition"><ion-icon name="create-outline" class="mr-2"></ion-icon> GENERAR</button>
+                        <button type="button" id="ret-clr-btn" class="flex-1 px-6 py-3.5 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 font-bold text-sm transition"><ion-icon name="refresh-outline" class="mr-2"></ion-icon> LIMPIAR</button>
+                    </div>
+                </form>
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Vista Previa</h2>
+                    <div class="relative"><textarea id="ret-out" readonly rows="20" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="ret-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="ret-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2 text-xl"></ion-icon> COPIAR NOTA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 9: DERMATOLOGÍA (TIEMPO REAL)                   -->
+        <!-- ====================================================== -->
+        <div id="app-procedimientos" class="app-view">
+            <h2 class="text-xl font-bold text-indigo-800 mb-6 flex items-center border-b border-indigo-100 pb-2"><ion-icon name="medical-outline" class="mr-2 text-indigo-600"></ion-icon> Dermatología y Procedimientos Menores</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-7 space-y-6 max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar pb-10">
+                    
+                    <div class="step-card bg-white p-6 rounded-2xl border border-indigo-100 shadow-sm">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">1. Ingreso y Profesional</h2>
+                        <div class="space-y-4">
+                            <div class="flex space-x-6 mb-2">
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="der-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-indigo-600 mr-2" checked> Masculino</label>
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="der-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-indigo-600 mr-2"> Femenino</label>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Profesional que realiza:</label>
+                                <select id="der-doc" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-indigo-500">
+                                    <option value="" disabled selected>Seleccione Profesional</option>
+                                    <option value="DR JULIO TORRES">Dr. Julio Torres</option><option value="DRA MARCELA RODRIGUEZ">Dra. Marcela Rodriguez</option><option value="DRA ADRIANA ALEJO">Dra. Adriana Alejo</option><option value="DRA MONICA ESPAÑA">Dra. Monica España</option><option value="DR JORGE HERRERA">Dr. Jorge Herrera</option><option value="DRA PAULA DUBEIBE">Dr. Paula Dubeibe</option><option value="DRA DIANA DIAZ">Dra. Diana Diaz</option><option value="DRA PERLA FURMAN">Dra. Perla Furman</option><option value="DR EDUARDO PALACIO">Dr. Eduardo Palacio</option><option value="DRA ROSA TORRES">Dra. Rosa Torres</option><option value="DRA JULIANA ANGULO">Dra. Juliana Angulo</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="der-dd" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold dd-select focus:ring-2 focus:ring-indigo-500"></select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">R. Caída</label><select id="der-rc" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"><option value="BAJO">BAJO</option><option value="MEDIO">MEDIO</option><option value="ALTO">ALTO</option></select></div>
+                                <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">R. Piel</label><select id="der-rp" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"><option value="BAJO">BAJO</option><option value="MEDIO">MEDIO</option><option value="ALTO">ALTO</option></select></div>
+                            </div>
+                            <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                                <label class="flex items-center font-bold text-orange-800 text-sm cursor-pointer"><input id="der-chk-aler" type="checkbox" class="h-4 w-4 text-orange-600 mr-2" onchange="document.getElementById('der-aler-esp').style.display=this.checked?'block':'none'">Refiere alergias</label>
+                                <input type="text" id="der-aler-esp" class="w-full p-2.5 border border-orange-200 rounded-xl text-sm mt-2" style="display:none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-card bg-white p-6 rounded-2xl border border-indigo-100 shadow-sm">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">2. Procedimiento</h2>
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <button type="button" onclick="setDerProc('BIOPSIA')" id="btn-BIOPSIA" class="der-btn p-2 rounded-lg border-2 text-xs font-bold bg-slate-50 hover:bg-indigo-50">🔬 BIOPSIA</button>
+                            <button type="button" onclick="setDerProc('RESECCION')" id="btn-RESECCION" class="der-btn p-2 rounded-lg border-2 text-xs font-bold bg-slate-50 hover:bg-indigo-50">🔪 RESECCIÓN</button>
+                            <button type="button" onclick="setDerProc('INFILTRACION')" id="btn-INFILTRACION" class="der-btn p-2 rounded-lg border-2 text-xs font-bold bg-slate-50 hover:bg-indigo-50">💉 INFILT.</button>
+                            <button type="button" onclick="setDerProc('CRIOTERAPIA')" id="btn-CRIOTERAPIA" class="der-btn p-2 rounded-lg border-2 text-xs font-bold bg-slate-50 hover:bg-indigo-50">❄️ CRIO</button>
+                            <button type="button" onclick="setDerProc('NASOLARINGOSCOPIA')" id="btn-NASOLARINGOSCOPIA" class="der-btn p-2 rounded-lg border-2 text-xs font-bold bg-slate-50 hover:bg-indigo-50">👃 NASO</button>
+                            <button type="button" onclick="setDerProc('OTRO_PROC')" id="btn-OTRO_PROC" class="der-btn p-2 rounded-lg border-2 text-xs font-bold bg-slate-50 hover:bg-indigo-50">⚙️ OTRO</button>
+                        </div>
+                        <div id="der-form" class="space-y-4 hidden">
+                            <input type="text" id="der-nom" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm">
+                            <div id="der-zona-div" class="grid grid-cols-2 gap-2">
+                                <input type="text" id="der-zona" placeholder="Zona Anatómica" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                                <select id="der-pos" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                                    <option value="SUPINO">SUPINO</option>
+                                    <option value="PRONO">PRONO</option>
+                                    <option value="FOWLER">FOWLER</option>
+                                    <option value="SEMI-FOWLER">SEMI-FOWLER</option>
+                                    <option value="DECÚBITO LATERAL IZQUIERDO">DECÚBITO LATERAL IZQUIERDO</option>
+                                    <option value="DECÚBITO LATERAL DERECHO">DECÚBITO LATERAL DERECHO</option>
+                                    <option value="SENTADO">SENTADO</option>
+                                </select>
+                            </div>
+                            <div id="der-dyn" class="p-3 bg-indigo-50 rounded-lg border border-indigo-100"></div>
+                            
+                            <div id="der-sut-div" class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                <label class="flex items-center text-sm font-bold"><input id="der-chk-sut" type="checkbox" class="h-4 w-4 mr-2" onchange="document.getElementById('der-sut-det').style.display=this.checked?'grid':'none'">Sutura de herida</label>
+                                <div id="der-sut-det" class="grid grid-cols-2 gap-2 mt-2" style="display:none;">
+                                    <input type="text" id="der-sut-mat" value="NYLON 5-0" class="w-full p-2 border border-slate-200 rounded text-xs">
+                                    <input type="number" id="der-sut-pun" value="1" class="w-full p-2 border border-slate-200 rounded text-xs">
+                                </div>
+                            </div>
+                            <label id="der-rec-div" class="flex items-center text-sm font-bold text-emerald-700 bg-emerald-50 p-2 rounded border border-emerald-100"><input id="der-chk-rec" type="checkbox" checked class="mr-2">Recuento Material y Gasas Completo y Conforme</label>
+                        </div>
+                    </div>
+
+                    <div class="step-card bg-white p-6 rounded-2xl border border-indigo-100 shadow-sm">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-2">3. Egreso</h2>
+                        <div class="space-y-4">
+                            <input type="text" id="der-cur" value="ÁCIDO FUSÍDICO Y MICROPORE" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold">
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 max-h-40 overflow-y-auto" id="der-recom-list"></div>
+                            <input type="text" id="der-ret-med" placeholder="Médico retira puntos" class="w-full p-2 border border-indigo-200 rounded-lg text-sm hidden">
+                            <label class="flex items-center text-sm font-bold"><input id="der-chk-seg" type="checkbox" class="mr-2">Seguimiento Premium</label>
+                            <div id="der-pat-div">
+                                <label class="flex items-center text-sm font-bold text-emerald-700"><input id="der-chk-pat" type="checkbox" class="mr-2" onchange="document.getElementById('der-pat-det').style.display=this.checked?'grid':'none'">Muestra Patología</label>
+                                <div id="der-pat-det" class="grid grid-cols-3 gap-2 mt-2" style="display:none;">
+                                    <input type="number" id="der-pat-fra" value="1" class="p-2 border rounded text-xs" placeholder="Frascos">
+                                    <input type="text" id="der-pat-fij" value="FORMOL" class="p-2 border rounded text-xs" placeholder="Fijador">
+                                    <input type="text" id="der-pat-lab" value="COLSANITAS" class="p-2 border rounded text-xs" placeholder="Laboratorio">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 h-fit lg:sticky lg:top-8">
+                    <div class="bg-slate-900 rounded-3xl p-6 shadow-2xl">
+                        <div class="flex items-center justify-between mb-4"><h2 class="text-white font-bold text-sm"><ion-icon name="terminal-outline" class="mr-2"></ion-icon> TIEMPO REAL</h2><span class="text-[10px] text-green-400 bg-green-900/30 px-2 py-0.5 rounded-full animate-pulse">LIVE</span></div>
+                        <textarea id="der-out" class="w-full h-[400px] bg-slate-950 text-emerald-400 p-4 rounded-xl border border-slate-800 text-xs font-mono uppercase resize-none focus:outline-none custom-scrollbar" readonly placeholder="SELECCIONE UN PROCEDIMIENTO..."></textarea>
+                        <div class="mt-4 space-y-2">
+                            <button id="der-copy-btn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl opacity-50 cursor-not-allowed" disabled>COPIAR NOTA</button>
+                            <button onclick="resetDer()" class="w-full bg-slate-800 text-slate-300 font-bold py-2 rounded-xl">LIMPIAR</button>
+                            <div id="der-msg" class="text-center text-emerald-400 font-bold hidden text-xs">✓ COPIADO</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 10: RESONANCIA                                  -->
+        <!-- ====================================================== -->
+        <div id="app-resonancia" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="scan-circle-outline" class="mr-2 text-slate-800"></ion-icon> Resonancia Magnética</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form id="res-form" class="space-y-6">
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">1. Estudio</legend>
+                        <div class="space-y-4 mt-2">
+                            <select id="res-tipo" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-white" onchange="toggleRes()">
+                                <option value="SIMPLE" selected>RM SIMPLE</option><option value="CONTRASTE">RM CONTRASTE</option><option value="HIOSCINA">RM CONTRASTE + B. HIOSCINA</option>
+                            </select>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="res-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-slate-800 mr-2" checked> Masculino</label>
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="res-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-slate-800 mr-2"> Femenino</label>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <select id="res-mov" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"><option value="CAMINANDO POR SUS PROPIOS MEDIOS" selected>Caminando</option><option value="EN SILLA DE RUEDAS">Silla Ruedas</option><option value="EN CAMILLA">Camilla</option></select>
+                                <input type="text" id="res-mot" placeholder="Motivo Estudio (Ej: Cefalea)" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <div class="bg-red-50 p-2 rounded-xl border border-red-100"><label class="flex items-center font-bold text-red-800 text-[11px]"><input id="res-chk-trau" type="checkbox" class="mr-1.5" onchange="document.getElementById('res-trau-esp').style.display=this.checked?'block':'none'">Traumas</label><input type="text" id="res-trau-esp" class="w-full p-1.5 mt-1 border rounded text-xs" style="display:none;"></div>
+                                <div class="bg-blue-50 p-2 rounded-xl border border-blue-100"><label class="flex items-center font-bold text-blue-800 text-[11px]"><input id="res-chk-qx" type="checkbox" class="mr-1.5" onchange="document.getElementById('res-qx-esp').style.display=this.checked?'block':'none'">Ant. Quirúrgicos</label><input type="text" id="res-qx-esp" class="w-full p-1.5 mt-1 border rounded text-xs" style="display:none;"></div>
+                                <div class="bg-orange-50 p-2 rounded-xl border border-orange-100"><label class="flex items-center font-bold text-orange-800 text-[11px]"><input id="res-chk-aler" type="checkbox" class="mr-1.5" onchange="document.getElementById('res-aler-esp').style.display=this.checked?'block':'none'">Alergias</label><input type="text" id="res-aler-esp" class="w-full p-1.5 mt-1 border rounded text-xs" style="display:none;"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="res-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset id="res-fs-cont" class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50" style="display:none;">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">2. Insumos y Contraste</legend>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <select id="res-mie" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"><option value="DERECHO">DERECHO</option><option value="IZQUIERDO">IZQUIERDO</option></select>
+                            <input type="text" id="res-ven" value="METACARPIANA" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold">
+                            <select id="res-yel" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"><option value="18">18</option><option value="20" selected>20</option><option value="22">22</option><option value="24">24</option></select>
+                            <select id="res-pun" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"><option value="ÚNICA PUNCIÓN">ÚNICA</option><option value="MÚLTIPLES PUNCIONES">MÚLTIPLES</option></select>
+                            
+                            <div class="col-span-2 grid grid-cols-2 gap-4 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                                <div><label class="block text-[10px] font-bold text-blue-700 uppercase">Medio Contraste</label><input type="text" id="res-med" value="GADOVIST" class="w-full p-2 border border-blue-200 rounded text-xs font-bold uppercase"></div>
+                                <div><label class="block text-[10px] font-bold text-blue-700 uppercase">Dosis (CC)</label><input type="text" id="res-dos" value="8" class="w-full p-2 border border-blue-200 rounded text-xs font-bold uppercase"></div>
+                            </div>
+                            <div id="res-hio-div" class="col-span-2 grid grid-cols-2 gap-4 bg-purple-50 p-3 rounded-xl border border-purple-100" style="display:none;">
+                                <div><label class="block text-[10px] font-bold text-purple-700 uppercase">Dosis Hioscina (MG)</label><input type="text" id="res-hio-d" value="20" class="w-full p-2 border border-purple-200 rounded text-xs font-bold uppercase"></div>
+                                <div><label class="block text-[10px] font-bold text-purple-700 uppercase">Sitio (IM)</label><input type="text" id="res-hio-s" value="DELTOIDES DERECHO" class="w-full p-2 border border-purple-200 rounded text-xs font-bold uppercase"></div>
+                            </div>
+                            <div class="col-span-2 bg-red-50 p-3 rounded-xl border border-red-100"><label class="flex items-center font-bold text-red-800 text-sm"><input id="res-chk-comp" type="checkbox" class="mr-2">¿Se presentó complicación? (Reacción alérgica)</label></div>
+                        </div>
+                    </fieldset>
+                    <div class="flex gap-4">
+                        <button type="button" id="res-gen-btn" class="flex-1 px-6 py-3.5 rounded-xl shadow-lg text-white bg-slate-800 hover:bg-slate-900 font-extrabold text-sm"><ion-icon name="create-outline" class="mr-2"></ion-icon> GENERAR</button>
+                        <button type="button" id="res-clr-btn" class="flex-1 px-6 py-3.5 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 font-bold text-sm"><ion-icon name="refresh-outline" class="mr-2"></ion-icon> LIMPIAR</button>
+                    </div>
+                </form>
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Vista Previa</h2>
+                    <div class="relative"><textarea id="res-out" readonly rows="28" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="res-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="res-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2 text-xl"></ion-icon> COPIAR NOTA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 11: TAC                                         -->
+        <!-- ====================================================== -->
+        <div id="app-tac" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="disc-outline" class="mr-2 text-slate-800"></ion-icon> Tomografía (TAC)</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form id="tac-form" class="space-y-6">
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">1. Estudio</legend>
+                        <div class="space-y-4 mt-2">
+                            <select id="tac-tipo" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-bold bg-white" onchange="toggleTac()">
+                                <option value="ADULTO" selected>TAC SIMPLE ADULTO</option><option value="PEDIATRICO">TAC SIMPLE PEDIÁTRICO</option><option value="CONTRASTE">TAC CON CONTRASTE</option>
+                            </select>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="tac-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-slate-800 mr-2" checked> Masculino</label>
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="tac-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-slate-800 mr-2"> Femenino</label>
+                            </div>
+                            
+                            <input type="text" id="tac-mot" placeholder="Motivo Estudio (Ej: Cuadro de cefalea)" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold mb-2">
+                            
+                            <div id="tac-ped-div" class="grid grid-cols-2 gap-4 bg-pink-50 p-3 rounded-xl border border-pink-100" style="display:none;">
+                                <div><label class="block text-[10px] font-bold text-pink-700 uppercase">Acompañante</label><select id="tac-acomp" class="w-full p-2 rounded text-xs"><option value="MADRE">MADRE</option><option value="PADRE">PADRE</option></select></div>
+                                <div><label class="block text-[10px] font-bold text-pink-700 uppercase">Estado</label><select id="tac-est" class="w-full p-2 rounded text-xs"><option value="DORMIDO">DORMIDO</option><option value="TRANQUILO">TRANQUILO</option></select></div>
+                                <div class="col-span-2"><label class="block text-[10px] font-bold text-pink-700 uppercase">Salida</label><select id="tac-sal" class="w-full p-2 rounded text-xs"><option value="EN BRAZOS DE MADRE">EN BRAZOS</option><option value="CAMINANDO">CAMINANDO</option></select></div>
+                            </div>
+                            
+                            <div id="tac-mov-div" class="w-full mb-2">
+                                <select id="tac-mov" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"><option value="CAMINANDO POR SUS PROPIOS MEDIOS">Caminando por sus propios medios</option><option value="EN SILLA DE RUEDAS">En silla de ruedas</option><option value="EN CAMILLA">En camilla</option></select>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <div class="bg-red-50 p-2 rounded-xl border border-red-100"><label class="flex items-center font-bold text-red-800 text-[11px]"><input id="tac-chk-trau" type="checkbox" class="mr-1.5" onchange="document.getElementById('tac-trau-esp').style.display=this.checked?'block':'none'">Traumas</label><input type="text" id="tac-trau-esp" class="w-full p-1.5 mt-1 border rounded text-xs" style="display:none;"></div>
+                                <div class="bg-blue-50 p-2 rounded-xl border border-blue-100"><label class="flex items-center font-bold text-blue-800 text-[11px]"><input id="tac-chk-qx" type="checkbox" class="mr-1.5" onchange="document.getElementById('tac-qx-esp').style.display=this.checked?'block':'none'">Ant. Quirúrgicos</label><input type="text" id="tac-qx-esp" class="w-full p-1.5 mt-1 border rounded text-xs" style="display:none;"></div>
+                                <div class="bg-orange-50 p-2 rounded-xl border border-orange-100"><label class="flex items-center font-bold text-orange-800 text-[11px]"><input id="tac-chk-aler" type="checkbox" class="mr-1.5" onchange="document.getElementById('tac-aler-esp').style.display=this.checked?'block':'none'">Alergias</label><input type="text" id="tac-aler-esp" class="w-full p-1.5 mt-1 border rounded text-xs" style="display:none;"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="tac-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset id="tac-fs-cont" class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50" style="display:none;">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">2. Contraste</legend>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <select id="tac-mie" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"><option value="DERECHO">DERECHO</option><option value="IZQUIERDO">IZQUIERDO</option></select>
+                            <input type="text" id="tac-ven" value="CEFÁLICA" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold">
+                            <select id="tac-yel" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"><option value="18">18</option><option value="20" selected>20</option><option value="22">22</option><option value="24">24</option></select>
+                            <select id="tac-pun" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold"><option value="ÚNICA PUNCIÓN">ÚNICA</option><option value="MÚLTIPLES PUNCIONES">MÚLTIPLES</option></select>
+                            
+                            <div class="col-span-2 grid grid-cols-2 gap-4 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                                <div><label class="block text-[10px] font-bold text-blue-700 uppercase">Medio</label><input type="text" id="tac-med" value="ULTRAVIST" class="w-full p-2 border border-blue-200 rounded text-xs font-bold uppercase"></div>
+                                <div><label class="block text-[10px] font-bold text-blue-700 uppercase">Dosis (CC)</label><input type="text" id="tac-dos" value="80" class="w-full p-2 border border-blue-200 rounded text-xs font-bold uppercase"></div>
+                            </div>
+                            <div class="col-span-2 bg-red-50 p-3 rounded-xl border border-red-100"><label class="flex items-center font-bold text-red-800 text-sm"><input id="tac-chk-comp" type="checkbox" class="mr-2">¿Se presentó complicación? (Reacción alérgica)</label></div>
+                        </div>
+                    </fieldset>
+                    <div class="flex gap-4">
+                        <button type="button" id="tac-gen-btn" class="flex-1 px-6 py-3.5 rounded-xl shadow-lg text-white bg-slate-800 hover:bg-slate-900 font-extrabold text-sm"><ion-icon name="create-outline" class="mr-2"></ion-icon> GENERAR</button>
+                        <button type="button" id="tac-clr-btn" class="flex-1 px-6 py-3.5 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 font-bold text-sm"><ion-icon name="refresh-outline" class="mr-2"></ion-icon> LIMPIAR</button>
+                    </div>
+                </form>
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Vista Previa</h2>
+                    <div class="relative"><textarea id="tac-out" readonly rows="28" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="tac-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="tac-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2 text-xl"></ion-icon> COPIAR NOTA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================== -->
+        <!-- MÓDULO 12: GLUCOMETRÍA                                 -->
+        <!-- ====================================================== -->
+        <div id="app-glucometria" class="app-view">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center border-b pb-2"><ion-icon name="water-outline" class="mr-2 text-emerald-600"></ion-icon> Toma de Glucometría</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <form id="glu-form" class="space-y-6">
+                    <fieldset class="border border-slate-200 p-5 rounded-2xl bg-slate-50/50">
+                        <legend class="text-sm font-bold text-slate-600 px-3 uppercase tracking-wider bg-white rounded-lg border border-slate-200 py-1">Contexto y Procedimiento</legend>
+                        <div class="space-y-4 mt-2">
+                            <div class="flex space-x-6">
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="glu-gen" type="radio" value="MASCULINO" class="h-4 w-4 text-emerald-600 mr-2" checked> Masculino</label>
+                                <label class="flex items-center text-sm font-semibold text-slate-700"><input name="glu-gen" type="radio" value="FEMENINO" class="h-4 w-4 text-emerald-600 mr-2"> Femenino</label>
+                            </div>
+                            <input type="text" id="glu-mot" placeholder="Motivo / Control (Ej: Control rutinario)" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            <div class="bg-orange-50 p-3 rounded-xl border border-orange-100">
+                                <label class="flex items-center font-bold text-orange-800 text-sm cursor-pointer"><input id="glu-chk-aler" type="checkbox" class="h-4 w-4 text-orange-600 mr-2" onchange="document.getElementById('glu-aler-div').style.display=this.checked?'block':'none'">Refiere alergias</label>
+                                <div id="glu-aler-div" class="mt-3" style="display: none;"><input type="text" id="glu-aler-esp" class="w-full p-2.5 border border-orange-200 rounded-xl text-sm"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Dedo a punzar</label>
+                                    <select id="glu-dedo" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold bg-white">
+                                        <option value="DEDO 1">Dedo 1 (Pulgar)</option>
+                                        <option value="DEDO 2" selected>Dedo 2 (Índice)</option>
+                                        <option value="DEDO 3">Dedo 3 (Medio)</option>
+                                        <option value="DEDO 4">Dedo 4 (Anular)</option>
+                                        <option value="DEDO 5">Dedo 5 (Meñique)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Mano</label>
+                                    <select id="glu-mano" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold bg-white">
+                                        <option value="DERECHA" selected>Mano Derecha</option>
+                                        <option value="IZQUIERDA">Mano Izquierda</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Resultado de Glucemia (mg/dL)</label>
+                                <input type="number" id="glu-val" placeholder="Ej: 110" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Derecho y Deber del Mes:</label>
+                                <select id="glu-dd" class="w-full p-3 border border-slate-300 rounded-xl text-sm font-semibold bg-white dd-select"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="flex gap-4">
+                        <button type="button" id="glu-gen-btn" class="flex-1 px-6 py-3.5 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="create-outline" class="mr-2"></ion-icon> GENERAR</button>
+                        <button type="button" id="glu-clr-btn" class="flex-1 px-6 py-3.5 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 font-bold text-sm transition"><ion-icon name="refresh-outline" class="mr-2"></ion-icon> LIMPIAR</button>
+                    </div>
+                </form>
+                <div class="space-y-4">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wide">Vista Previa</h2>
+                    <div class="relative"><textarea id="glu-out" readonly rows="20" class="w-full p-5 border-2 rounded-2xl shadow-inner resize-none focus:outline-none nota-textarea custom-scrollbar text-sm font-mono uppercase leading-relaxed"></textarea><div id="glu-msg" class="absolute top-4 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow" style="display:none;">✓ COPIADO</div></div>
+                    <button type="button" id="glu-copy-btn" class="w-full px-6 py-4 rounded-xl shadow-lg text-white bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm transition"><ion-icon name="copy-outline" class="mr-2 text-xl"></ion-icon> COPIAR NOTA</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        const derechosDeberesOptions = `
+            <option value="Derecho: A una comunicación plena y clara con el equipo de salud. | Deber: Identificarse verazmente y no ocultar información importante para la atención médica.">1. Comunicación / Identificación</option>
+            <option value="Derecho: A la confidencialidad de la historia clínica. | Deber: Respetar la dignidad de otros pacientes y sus familiares.">2. Confidencialidad / Respeto</option>
+            <option value="Derecho: A un trato digno y respetuoso por sus creencias. | Deber: Firmar la historia clínica o el consentimiento informado en caso de negativa o aceptación." selected>3. Trato digno / Firmar consentimiento</option>
+            <option value="Derecho: A la prestación del servicio de salud según complejidad. | Deber: Respetar al personal que presta servicios en la institución.">4. Prestación de servicio / Respetar al personal</option>
+            <option value="Derecho: A recibir información total y completa sobre los costos del servicio prestado. | Deber: Responsabilizarse de su propia salud a través del autocuidado.">5. Información de costos / Autocuidado</option>
+            <option value="Derecho: A reclamar y sugerir mejoras en el servicio. | Deber: Firmar en la historia clínica su deseo de rechazar la información.">6. Reclamar / Firmar rechazo</option>
+            <option value="Derecho: A recibir o rehusar apoyo espiritual o moral. | Deber: Firmar el documento de alta voluntaria cuando así lo desee.">7. Apoyo espiritual / Alta voluntaria</option>
+            <option value="Derecho: A decidir si participa o no en investigaciones científicas. | Deber: Seguir el plan de tratamiento e indicaciones del equipo de salud.">8. Investigaciones / Seguir tratamiento</option>
+            <option value="Derecho: A aceptar o renunciar a la donación de órganos. | Deber: Usar correctamente los recursos de la institución de salud.">9. Donación de órganos / Usar recursos</option>
+            <option value="Derecho: A morir con dignidad. | Deber: Elegir libremente al profesional de la salud, según disponibilidad.">10. Morir con dignidad / Elegir profesional</option>
+        `;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('.dd-select').forEach(el => el.innerHTML = derechosDeberesOptions);
+            
+            const copyButtonMappings = [
+                { btn: 'cur-copy-btn', out: 'cur-out', msg: 'cur-msg' },
+                { btn: 'np-copy-btn', out: 'np-out', msg: 'np-msg' },
+                { btn: 'ce-copy-btn', out: 'ce-out', msg: 'ce-msg' },
+                { btn: 'ped-copy-btn', out: 'ped-out', msg: 'ped-msg' },
+                { btn: 'obs-copy-btn', out: 'obs-out', msg: 'obs-msg' },
+                { btn: 'ekg-copy-btn', out: 'ekg-out', msg: 'ekg-msg' },
+                { btn: 'pen-copy-btn', out: 'pen-out', msg: 'pen-msg' },
+                { btn: 'ret-copy-btn', out: 'ret-out', msg: 'ret-msg' },
+                { btn: 'der-copy-btn', out: 'der-out', msg: 'der-msg' },
+                { btn: 'res-copy-btn', out: 'res-out', msg: 'res-msg' },
+                { btn: 'tac-copy-btn', out: 'tac-out', msg: 'tac-msg' },
+                { btn: 'glu-copy-btn', out: 'glu-out', msg: 'glu-msg' }
+            ];
+
+            copyButtonMappings.forEach(mapping => {
+                const btn = document.getElementById(mapping.btn);
+                if (btn) {
+                    btn.addEventListener('click', () => copyToClipboard(mapping.out, mapping.msg));
+                }
+            });
+
+            const derRecoms = ["MANTENER LA ZONA LIMPIA Y SECA POR 24 HORAS", "EVITAR LA EXPOSICIÓN DIRECTA AL SOL", "NO REALIZAR EJERCICIO FÍSICO EXTENUANTE POR 48 HORAS", "TOMAR ANALGÉSICOS SI PRESENTA DOLOR", "NO MANIPULAR LA CURACIÓN", "ACUDIR A URGENCIAS ANTE SIGNOS DE ALARMA", "EVITAR MOJAR LA ZONA HASTA EL RETIRO DE PUNTOS", "RETIRO DE PUNTOS POR ENFERMERÍA", "RETIRO DE PUNTOS POR MÉDICO"];
+            const rCont = document.getElementById('der-recom-list');
+            if(rCont) {
+                derRecoms.forEach(r => {
+                    rCont.innerHTML += `<label class="flex items-center text-xs text-slate-600 p-1.5 cursor-pointer hover:bg-white rounded"><input type="checkbox" class="der-recom-chk mr-2" value="${r}" onchange="${r==='RETIRO DE PUNTOS POR MÉDICO'?"document.getElementById('der-ret-med').style.display=this.checked?'block':'none'":''}"><span class="font-bold">${r}</span></label>`;
+                });
+                rCont.addEventListener('change', procUpdateAll);
+            }
+        });
+
+        function showView(id) {
+            document.querySelectorAll('.app-view').forEach(v => v.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            document.getElementById('back-to-menu-btn').style.display = id === 'app-menu' ? 'none' : 'inline-flex';
+            window.scrollTo({top:0, behavior:'smooth'});
+        }
+
+        function copyToClipboard(textareaId, msgId) {
+            const textarea = document.getElementById(textareaId);
+            if (!textarea) return;
+            
+            if (!textarea.value) {
+                console.warn("Textarea is empty:", textareaId);
+                return;
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textarea.value).then(() => {
+                    showCopyMessage(msgId);
+                }).catch(err => {
+                    console.warn("Clipboard API failed, using fallback:", err);
+                    fallbackCopy(textarea, msgId);
+                });
+            } else {
+                fallbackCopy(textarea, msgId);
+            }
+        }
+
+        function fallbackCopy(textarea, msgId) {
+            textarea.focus();
+            textarea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopyMessage(msgId);
+                }
+            } catch (err) {
+                console.error('Error copying text with fallback', err);
+            }
+        }
+
+        function showCopyMessage(msgId) {
+            const msg = document.getElementById(msgId);
+            if (!msg) return;
+            msg.style.display = 'block'; 
+            msg.style.opacity = '1';
+            setTimeout(() => { 
+                msg.style.opacity = '0'; 
+                setTimeout(() => msg.style.display = 'none', 300); 
+            }, 2000);
+        }
+
+        function parseDD(id) {
+            const el = document.getElementById(id);
+            if(!el) return {d:'-',b:'-'};
+            const v = el.value;
+            return { d: v.split('|')[0].replace('Derecho:','').trim(), b: v.split('|')[1].replace('Deber:','').trim() };
+        }
+
+        // --- CURACIÓN ---
+        document.getElementById('cur-gen-btn').addEventListener('click', () => {
+            const g = document.querySelector('input[name="cur-gen"]:checked').value, e = g==='MASCULINO'?'O':'A', al=g==='MASCULINO'?'AL':'A LA';
+            const {d,b} = parseDD('cur-dd');
+            const aler = document.getElementById('cur-chk-aler').checked ? `SE INDAGAN ALERGIAS, REFIERE ALERGIAS A ${document.getElementById('cur-aler-esp').value}` : "SE INDAGAN ALERGIAS, NO REFIERE ALERGIAS";
+            const inf = document.getElementById('cur-inf').value==='Presentes' ? `PRESENTES (${document.getElementById('cur-inf-val').value})` : "AUSENTES";
+            let pos = document.getElementById('cur-pos').value; if(pos === 'OTRO') pos = document.getElementById('cur-pos-otro').value.toUpperCase();
+            
+            document.getElementById('cur-out').value = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS, TRAE ORDEN PARA REALIZAR CURACIÓN DE LESIÓN EN ${document.getElementById('cur-area').value} SECUNDARIO A ${document.getElementById('cur-causa').value}.
+
+SE REVISA ORDEN MÉDICA, SE CONFIRMA PRESCRIPCIÓN. ${aler}. SE OBTIENE FIRMA DE CONSENTIMIENTO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+
+SE UBICA ${al} PACIENTE EN CAMILLA, POSICIÓN ${pos}. SE VALORA HERIDA:
+LOCALIZACIÓN: ${document.getElementById('cur-loc').value}
+TAMAÑO: ${document.getElementById('cur-tam').value}
+EXUDADO: ${document.getElementById('cur-exu').value}
+ORIGEN: ${document.getElementById('cur-ori').value}
+INFECCIÓN: ${inf}
+PIEL PERILESIONAL: ${document.getElementById('cur-piel').value}
+
+PREVIO LAVADO DE MANOS Y BAJO TÉCNICA ASÉPTICA SE LAVA LESIÓN CON ${document.getElementById('cur-lav').value}, SE SECA Y SE COLOCA ${document.getElementById('cur-col').value}, CUBRIENDO CON ${document.getElementById('cur-cub').value} Y FIJANDO CON ${document.getElementById('cur-fij').value}.
+
+SE DAN INDICACIONES Y SIGNOS DE ALARMA. PRÓXIMA CURACIÓN EN ${document.getElementById('cur-prox-cita')?.value || 2} DÍAS. SALE PACIENTE ALERTA, ORIENTAD${e}, CON RECOMENDACIONES DE CUIDADO.`.toUpperCase();
+        });
+        document.getElementById('cur-clr-btn').addEventListener('click', () => { document.getElementById('curacion-form').reset(); document.getElementById('cur-out').value=''; document.getElementById('cur-aler-div').style.display='none'; document.getElementById('cur-inf-det').style.display='none'; document.getElementById('cur-pos-otro').style.display='none'; });
+
+        // --- MEDS NP ---
+        document.getElementById('np-gen-btn').addEventListener('click', () => {
+            const g = document.querySelector('input[name="np-gen"]:checked').value, e = g==='MASCULINO'?'O':'A';
+            const {d,b} = parseDD('np-dd');
+            const aler = document.getElementById('np-chk-aler').checked ? `PACIENTE REFIERE ALERGIAS A ${document.getElementById('np-aler-esp').value}.` : "PACIENTE NO REFIERE ALERGIAS.";
+            const anti = document.getElementById('np-anti').value === 'SI' ? " PACIENTE REFIERE ESTAR ANTICOAGULADO." : "";
+            
+            const m1 = document.getElementById('np-m1').value, d1=document.getElementById('np-d1').value, v1=document.getElementById('np-v1').value;
+            let s1 = document.getElementById('np-s1').value; if(s1 === 'OTRO') s1 = document.getElementById('np-s1-otro').value;
+            
+            const hasM2 = document.getElementById('np-chk-m2').checked, m2 = document.getElementById('np-m2').value, d2=document.getElementById('np-d2').value, v2=document.getElementById('np-v2').value;
+            let s2 = document.getElementById('np-s2').value; if(s2 === 'OTRO') s2 = document.getElementById('np-s2-otro').value;
+            
+            const cub = document.getElementById('np-cub').value;
+            let pos = document.getElementById('np-pos').value; if(pos === 'OTRO') pos = document.getElementById('np-pos-otro').value.toUpperCase();
+            const rc = document.getElementById('np-rc').value;
+            const rp = document.getElementById('np-rp').value;
+            
+            let ord = `${m1} ${d1} ${v1}`; if(hasM2 && m2) ord += ` Y ${m2} ${d2} ${v2}`; else ord += ` DOSIS ÚNICA`;
+            
+            let adm = `SE REALIZA DESINFECCIÓN DEL ${s1}, SE ADMINISTRA ${m1} ${d1} DE FORMA ${v1}.`;
+            if(hasM2 && m2) {
+                adm = `SE REALIZA DESINFECCIÓN DEL ${s1}, SE ADMINISTRA ${m1} ${d1} DE FORMA ${v1}. POSTERIORMENTE SE REALIZA DESINFECCIÓN DEL ${s2}, SE ADMINISTRA ${m2} ${d2} DE FORMA ${v2} SIN PRESENTARSE NINGUNA REACCIÓN ADVERSA.`;
+            } else {
+                adm = `SE REALIZA DESINFECCIÓN DEL ${s1}, SE ADMINISTRA ${m1} ${d1} DE FORMA ${v1} SIN PRESENTARSE NINGUNA REACCIÓN ADVERSA.`;
+            }
+
+            document.getElementById('np-out').value = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS, TRAE ORDEN PARA ADMINISTRAR ${ord} COMO TRATAMIENTO PARA ${document.getElementById('np-mot').value}.
+
+SE REVISA ORDEN MÉDICA, SE CONFIRMA PRESCRIPCIÓN, SE REVISA DISPONIBILIDAD DE LOS INSUMOS. SE REALIZA LISTA DE CHEQUEO PARA ADMINISTRACIÓN DE MEDICAMENTOS, SE INDAGAN ALERGIAS: ${aler}${anti}
+
+SE OBTIENE FIRMA DE CONSENTIMIENTO DE ENFERMERÍA. SE REALIZA VERIFICACIÓN DE LOS 13 CORRECTOS EN LA ADMINISTRACIÓN DE MEDICAMENTOS. SE EXPLICA EL PROCEDIMIENTO, PACIENTE REFIERE ENTENDER Y ACEPTAR.
+
+SE SOCIALIZA EL DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+
+SE REALIZA LAVADO DE MANOS. SE UBICA AL PACIENTE EN EL CUBÍCULO NÚMERO ${cub}, EN CAMILLA, EN POSICIÓN ${pos}. SE VALORAN ESCALAS DE RIESGO: CAÍDA (${rc}), LESIÓN DE PIEL (${rp}).
+
+${adm}
+
+SE INDICA AL PACIENTE PERMANECER 10 MINUTOS EN EL CUBÍCULO COMO TIEMPO DE OBSERVACIÓN POST-ADMINISTRACIÓN DE MEDICAMENTOS. TRANSCURRIDOS LOS 10 MINUTOS, SALE PACIENTE DEL ÁREA DE ENFERMERÍA, ALERTA, ORIENTAD${e}, CONSCIENTE, CON EL MEDICAMENTO ADMINISTRADO. SE BRINDAN RECOMENDACIONES Y EDUCACIÓN EN TORNO AL MEDICAMENTO ADMINISTRADO. PACIENTE REFIERE ENTENDER Y ACEPTAR.`.toUpperCase();
+        });
+        document.getElementById('np-clr-btn').addEventListener('click', () => { 
+            document.getElementById('np-form').reset(); document.getElementById('np-out').value=''; 
+            document.getElementById('np-aler-div').style.display='none'; document.getElementById('np-m2-div').style.display='none'; 
+            document.getElementById('np-s1-otro').style.display='none'; document.getElementById('np-s2-otro').style.display='none'; document.getElementById('np-pos-otro').style.display='none';
+        });
+
+        // --- MEDS CE ---
+        document.getElementById('ce-gen-btn').addEventListener('click', () => {
+            const g = document.querySelector('input[name="ce-gen"]:checked').value, e = g==='MASCULINO'?'O':'A';
+            const {d,b} = parseDD('ce-dd');
+            const aler = document.getElementById('ce-chk-aler').checked ? `PACIENTE REFIERE ALERGIAS A ${document.getElementById('ce-aler-esp').value}.` : "PACIENTE NO REFIERE ALERGIAS.";
+            const anti = document.getElementById('ce-anti').value === 'SI' ? " PACIENTE REFIERE ESTAR ANTICOAGULADO." : "";
+            
+            const m1 = document.getElementById('ce-m1').value, d1=document.getElementById('ce-d1').value, v1=document.getElementById('ce-v1').value;
+            let s1 = document.getElementById('ce-s1').value; if(s1 === 'OTRO') s1 = document.getElementById('ce-s1-otro').value;
+            
+            const hasM2 = document.getElementById('ce-chk-m2').checked, m2 = document.getElementById('ce-m2').value, d2=document.getElementById('ce-d2').value, v2=document.getElementById('ce-v2').value;
+            let s2 = document.getElementById('ce-s2').value; if(s2 === 'OTRO') s2 = document.getElementById('ce-s2-otro').value;
+            
+            const cub = document.getElementById('ce-cub').value;
+            let pos = document.getElementById('ce-pos').value; if(pos === 'OTRO') pos = document.getElementById('ce-pos-otro').value.toUpperCase();
+            const rc = document.getElementById('ce-rc').value;
+            const rp = document.getElementById('ce-rp').value;
+            
+            let ord = `${m1} ${d1} ${v1}`; if(hasM2 && m2) ord += ` Y ${m2} ${d2} ${v2}`; else ord += ` DOSIS ÚNICA`;
+            
+            let seg = `MEDICAMENTO 1 (${m1}):\nDOSIS: ${d1}\nLOTE: ${document.getElementById('ce-l1').value}\nFECHA VENCIMIENTO: ${document.getElementById('ce-f1').value}\nINVIMA: ${document.getElementById('ce-i1').value}`;
+            if(hasM2 && m2) seg += `\n\nMEDICAMENTO 2 (${m2}):\nDOSIS: ${d2}\nLOTE: ${document.getElementById('ce-l2').value}\nFECHA VENCIMIENTO: ${document.getElementById('ce-f2').value}\nINVIMA: ${document.getElementById('ce-i2').value}`;
+
+            let adm = `SE REALIZA DESINFECCIÓN DEL ${s1}, SE ADMINISTRA ${m1} ${d1} DE FORMA ${v1}.`;
+            if(hasM2 && m2) {
+                adm = `SE REALIZA DESINFECCIÓN DEL ${s1}, SE ADMINISTRA ${m1} ${d1} DE FORMA ${v1}. POSTERIORMENTE SE REALIZA DESINFECCIÓN DEL ${s2}, SE ADMINISTRA ${m2} ${d2} DE FORMA ${v2} SIN PRESENTARSE NINGUNA REACCIÓN ADVERSA.`;
+            } else {
+                adm = `SE REALIZA DESINFECCIÓN DEL ${s1}, SE ADMINISTRA ${m1} ${d1} DE FORMA ${v1} SIN PRESENTARSE NINGUNA REACCIÓN ADVERSA.`;
+            }
+
+            document.getElementById('ce-out').value = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS, TRAE ORDEN PARA ADMINISTRAR ${ord} COMO TRATAMIENTO PARA ${document.getElementById('ce-mot').value}.
+
+SE REVISA ORDEN MÉDICA, SE CONFIRMA PRESCRIPCIÓN, SE REVISA DISPONIBILIDAD DE LOS INSUMOS. SE REALIZA LISTA DE CHEQUEO PARA ADMINISTRACIÓN DE MEDICAMENTOS, SE INDAGAN ALERGIAS: ${aler}${anti}
+
+SE OBTIENE FIRMA DE CONSENTIMIENTO DE ENFERMERÍA. SE REALIZA VERIFICACIÓN DE LOS 13 CORRECTOS EN LA ADMINISTRACIÓN DE MEDICAMENTOS. SE EXPLICA EL PROCEDIMIENTO, PACIENTE REFIERE ENTENDER Y ACEPTAR.
+
+SE SOCIALIZA EL DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+
+PACIENTE TRAE EL MEDICAMENTO, LOS DATOS DE SEGURIDAD SON LOS SIGUIENTES:
+${seg}
+
+SE REALIZA LAVADO DE MANOS. SE UBICA AL PACIENTE EN EL CUBÍCULO NÚMERO ${cub}, EN CAMILLA, EN POSICIÓN ${pos}. SE VALORAN ESCALAS DE RIESGO: CAÍDA (${rc}), LESIÓN DE PIEL (${rp}).
+
+${adm}
+
+SE INDICA AL PACIENTE PERMANECER 10 MINUTOS EN EL CUBÍCULO COMO TIEMPO DE OBSERVACIÓN POST-ADMINISTRACIÓN DE MEDICAMENTOS. TRANSCURRIDOS LOS 10 MINUTOS, SALE PACIENTE DEL ÁREA DE ENFERMERÍA, ALERTA, ORIENTAD${e}, CONSCIENTE, CON EL MEDICAMENTO ADMINISTRADO. SE BRINDAN RECOMENDACIONES Y EDUCACIÓN EN TORNO AL MEDICAMENTO ADMINISTRADO. PACIENTE REFIERE ENTENDER Y ACEPTAR.`.toUpperCase();
+        });
+        document.getElementById('ce-clr-btn').addEventListener('click', () => { document.getElementById('ce-form').reset(); document.getElementById('ce-out').value=''; document.getElementById('ce-aler-div').style.display='none'; document.getElementById('ce-m2-div').style.display='none'; document.getElementById('ce-s1-otro').style.display='none'; document.getElementById('ce-s2-otro').style.display='none'; document.getElementById('ce-pos-otro').style.display='none'; });
+
+        // --- MEDS PEDIÁTRICOS ---
+        document.getElementById('ped-gen-btn').addEventListener('click', () => {
+            const {d,b} = parseDD('ped-dd');
+            let ac = document.getElementById('ped-acomp').value; if(ac==='OTRO') ac = document.getElementById('ped-acomp-otro').value;
+            const aler = document.getElementById('ped-chk-aler').checked ? `REFIERE ALERGIA A ${document.getElementById('ped-aler-esp').value}` : "NIEGA ALERGIAS";
+            const m1 = document.getElementById('ped-m1').value, d1=document.getElementById('ped-d1').value, v1=document.getElementById('ped-v1').value;
+            let s1 = document.getElementById('ped-s1').value; if(s1 === 'OTRO') s1 = document.getElementById('ped-s1-otro').value;
+            
+            const hasM2 = document.getElementById('ped-chk-m2').checked, m2 = document.getElementById('ped-m2').value, d2=document.getElementById('ped-d2').value, v2=document.getElementById('ped-v2').value;
+            let s2 = document.getElementById('ped-s2').value; if(s2 === 'OTRO') s2 = document.getElementById('ped-s2-otro').value;
+            
+            let pos = document.getElementById('ped-pos').value; if(pos === 'OTRO') pos = document.getElementById('ped-pos-otro').value.toUpperCase();
+
+            let ord = `${m1} ${d1} ${v1}`; if(hasM2 && m2) ord += ` Y ${m2} ${d2} ${v2}`; else ord += ` DOSIS ÚNICA`;
+            
+            let adm = `SE REALIZA DESINFECCIÓN DEL ${s1} Y SE ADMINISTRA ${m1} ${d1} DE FORMA ${v1}`;
+            if(hasM2 && m2) {
+                adm += `. POSTERIORMENTE SE REALIZA DESINFECCIÓN DEL ${s2} Y SE ADMINISTRA ${m2} ${d2} DE FORMA ${v2}`;
+            }
+            adm += " SIN PRESENTARSE REACCIÓN ADVERSA INMEDIATA.";
+
+            document.getElementById('ped-out').value = `INGRESA PACIENTE PEDIÁTRICO A SALA DE ENFERMERÍA, SE OBSERVA ALERTA, ACTIVO, EN COMPAÑÍA DE SU ${ac}. PRESENTA ORDEN PARA ADMINISTRAR ${ord} COMO TRATAMIENTO PARA ${document.getElementById('ped-mot').value}.
+
+SE REVISA ORDEN MÉDICA, SE INDAGAN ALERGIAS, ACUDIENTE ${aler}. SE OBTIENE FIRMA DE CONSENTIMIENTO INFORMADO POR PARTE DEL ADULTO RESPONSABLE. SE REALIZA LA VERIFICACIÓN DE LOS 13 CORRECTOS PARA LA ADMINISTRACIÓN SEGURA. SE EXPLICA EL PROCEDIMIENTO AL MENOR Y A SU ACOMPAÑANTE, Y SE BRINDA EDUCACIÓN SOBRE EL MEDICAMENTO A ADMINISTRAR. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+
+PREVIO LAVADO DE MANOS, SE UBICA AL PACIENTE EN EL CUBÍCULO N.º ${document.getElementById('ped-cub').value}, EN CAMILLA, EN POSICIÓN ${pos}, CON APOYO Y CONTENCIÓN POR PARTE DE SU ${ac}. SE VALORAN ESCALAS DE RIESGO: CAÍDA (${document.getElementById('ped-rc').value}), LESIÓN DE PIEL (${document.getElementById('ped-rp').value}). ${adm}
+
+SE INDICA AL ACUDIENTE PERMANECER CON EL MENOR 10 MINUTOS EN OBSERVACIÓN. TRANSCURRIDO EL TIEMPO, EL PACIENTE PEDIÁTRICO EGRESA EN COMPAÑÍA DE SU FAMILIAR, ALERTA Y TRANQUILO. SE BRINDAN RECOMENDACIONES DE CUIDADO.`.toUpperCase();
+        });
+        document.getElementById('ped-clr-btn').addEventListener('click', () => { document.getElementById('ped-form').reset(); document.getElementById('ped-out').value=''; document.getElementById('ped-aler-div').style.display='none'; document.getElementById('ped-acomp-otro').style.display='none'; document.getElementById('ped-m2-div').style.display='none'; document.getElementById('ped-s1-otro').style.display='none'; document.getElementById('ped-s2-otro').style.display='none'; document.getElementById('ped-pos-otro').style.display='none'; });
+
+        // --- OBSERVACIÓN ---
+        let obsLiq = 0, obsSvi = {}, obsSvf = {};
+        function openObsModal(t) { document.getElementById('obs-sv-modal-type').value=t; document.getElementById('obs-sv-modal').style.display='flex'; }
+        function closeObsSvModal() { document.getElementById('obs-sv-modal').style.display='none'; }
+        function saveObsSvModal() {
+            const t = document.getElementById('obs-sv-modal-type').value;
+            const d = { ta: document.getElementById('modal-sv-ta').value, fc: document.getElementById('modal-sv-fc').value, fr: document.getElementById('modal-sv-fr').value, temp: document.getElementById('modal-sv-temp').value, spo2: document.getElementById('modal-sv-spo2').value };
+            if(t==='ini') obsSvi=d; else obsSvf=d;
+            document.getElementById(t==='ini'?'obs-svi-btn':'obs-svf-btn').innerHTML = "✓ Guardado";
+            closeObsSvModal();
+        }
+        function formatObsSv(svStr, d) {
+            if(svStr==='NORMALES') return 'NORMALES';
+            let r=[]; if(d.ta) r.push(`TA:${d.ta}`); if(d.fc) r.push(`FC:${d.fc}`); if(d.fr) r.push(`FR:${d.fr}`); if(d.temp) r.push(`T:${d.temp}`); if(d.spo2) r.push(`SPO2:${d.spo2}`);
+            return r.length ? `ALTERADOS (${r.join(', ')})` : 'ALTERADOS';
+        }
+
+        document.getElementById('obs-gen-ing-btn').addEventListener('click', () => {
+            const g = document.querySelector('input[name="obs-gen"]:checked').value, e = g==='MASCULINO'?'O':'A';
+            const {d,b} = parseDD('obs-dd');
+            const aler = document.getElementById('obs-chk-aler').checked ? `SE INDAGAN ALERGIAS, REFIERE ALERGIAS A ${document.getElementById('obs-aler-esp').value}` : "SE INDAGAN ALERGIAS, NIEGA ALERGIAS";
+            const m1 = document.getElementById('obs-m1').value, dil1 = parseInt(document.getElementById('obs-d1').value)||0;
+            const hasM2 = document.getElementById('obs-chk-m2').checked, m2 = document.getElementById('obs-m2').value, dil2 = parseInt(document.getElementById('obs-d2').value)||0;
+            obsLiq = dil1 + (hasM2?dil2:0);
+            
+            let pos = document.getElementById('obs-pos').value; if(pos === 'OTRO') pos = document.getElementById('obs-pos-otro').value.toUpperCase();
+            
+            let ord = m1; if(hasM2&&m2) ord+=` Y ${m2}`;
+            let adm = `SE INICIA ${m1} DILUIDO EN ${dil1} ML DE SOL. SALINA.`; if(hasM2&&m2) adm+=` POSTERIORMENTE ${m2} DILUIDO EN ${dil2} ML.`;
+
+            document.getElementById('obs-out').value = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA, ORIENTAD${e}, EN COMPAÑÍA DE ${document.getElementById('obs-med-ref').value} CON ORDEN PARA CANALIZAR Y ADMINISTRAR ${ord} COMO TRATAMIENTO PARA ${document.getElementById('obs-mot').value}.
+
+${aler}. SE FIRMA CONSENTIMIENTO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+
+SE TOMAN SIGNOS VITALES LOS CUALES ESTÁN ${formatObsSv(document.getElementById('obs-svi').value, obsSvi)}. PACIENTE PRESENTA: ${document.getElementById('obs-sintomas').value}. RIESGOS: CAÍDA (${document.getElementById('obs-rc').value}), PIEL (${document.getElementById('obs-rp').value}), DOLOR (${document.getElementById('obs-dolor').value}).
+
+PREVIO LAVADO DE MANOS Y BAJO TÉCNICA ASÉPTICA SE CANALIZA VENA ${document.getElementById('obs-vena').value} EN MIEMBRO ${document.getElementById('obs-miembro').value} CON YELCO NRO ${document.getElementById('obs-yelco').value}, ${document.getElementById('obs-pun').value}. SE FIJA ACCESO. ${adm} SE DEJA PACIENTE EN CAMILLA, EN POSICIÓN ${pos}, BARANDAS ARRIBA.`.toUpperCase();
+        });
+
+        document.getElementById('obs-gen-adi-btn').addEventListener('click', () => {
+            const m = document.getElementById('obs-adi-m').value, dil = parseInt(document.getElementById('obs-adi-d').value)||0; obsLiq += dil;
+            let pos = document.getElementById('obs-adi-pos').value; if(pos === 'OTRO') pos = document.getElementById('obs-adi-pos-otro').value.toUpperCase();
+            document.getElementById('obs-out').value += `\n\nCONTINÚA PACIENTE EN CAMILLA (CUBÍCULO ${document.getElementById('obs-adi-cub').value}), POSICIÓN ${pos}. FINALIZA MEDICAMENTO ANTERIOR Y SE INICIA ${m} DILUIDO EN ${dil} ML. CONTINÚA EN OBSERVACIÓN.`.toUpperCase();
+        });
+
+        document.getElementById('obs-gen-egr-btn').addEventListener('click', () => {
+            const e = document.querySelector('input[name="obs-gen"]:checked').value==='MASCULINO'?'O':'A';
+            document.getElementById('obs-out').value += `\n\nFINALIZA ADMINISTRACIÓN, ${document.getElementById('obs-egr-med').value} VALORA PACIENTE Y DA ORDEN DE SALIDA. SIGNOS VITALES: ${formatObsSv(document.getElementById('obs-svf').value, obsSvf)}. SE RETIRA ACCESO VENOSO ${document.getElementById('obs-egr-ret').value}.\nLÍQUIDOS TOTALES: ${obsLiq} ML.\nSALE PACIENTE, ALERTA, ORIENTAD${e}, CON RECOMENDACIONES.`.toUpperCase();
+        });
+
+        document.getElementById('obs-clr-btn').addEventListener('click', () => { document.getElementById('obs-form-ingreso').reset(); document.getElementById('obs-form-adi').reset(); document.getElementById('obs-form-egr').reset(); document.getElementById('obs-out').value=''; obsLiq=0; obsSvi={}; obsSvf={}; document.getElementById('obs-pos-otro').style.display='none'; document.getElementById('obs-adi-pos-otro').style.display='none'; });
+
+        // --- EKG ---
+        document.getElementById('ekg-gen-btn').addEventListener('click', () => {
+            const e = document.querySelector('input[name="ekg-gen"]:checked').value==='MASCULINO'?'O':'A', al=document.querySelector('input[name="ekg-gen"]:checked').value==='MASCULINO'?'AL':'A LA';
+            const {d,b} = parseDD('ekg-dd');
+            document.getElementById('ekg-out').value = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO, TRAE ORDEN MÉDICA PARA ELECTROCARDIOGRAMA, ENVIADO POR ${document.getElementById('ekg-env').value} AL PRESENTAR ${document.getElementById('ekg-mot').value}.
+
+SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+
+SE EXPLICA EL PROCEDIMIENTO ${al} PACIENTE, REFIERE ENTENDER Y ACEPTAR. SE LE INDICA RETIRAR OBJETOS METÁLICOS. SE UBICA EN CAMILLA DECÚBITO SUPINO, SE TOMAN TRAZOS SIN NOVEDAD. 
+
+FINALIZADO EL EXAMEN, SE LE INDICA ESPERAR RESULTADOS. SALE PACIENTE DE SALA DE ENFERMERÍA, ALERTA, ORIENTAD${e}.`.toUpperCase();
+        });
+        document.getElementById('ekg-clr-btn').addEventListener('click', () => { document.getElementById('ekg-form').reset(); document.getElementById('ekg-out').value=''; });
+
+        // --- PENICILINA ---
+        document.getElementById('pen-gen-btn').addEventListener('click', () => {
+            const e = document.querySelector('input[name="pen-gen"]:checked').value==='MASCULINO'?'O':'A', al=document.querySelector('input[name="pen-gen"]:checked').value==='MASCULINO'?'AL':'A LA';
+            const aler = document.getElementById('pen-chk-aler').checked ? `SE INDAGAN ALERGIAS, REFIERE ALERGIAS A ${document.getElementById('pen-aler-esp').value}` : "SE INDAGAN ALERGIAS, NIEGA ALERGIAS";
+            let seg = document.getElementById('pen-chk-seg').checked ? `\nDATOS SEGURIDAD: LOTE: ${document.getElementById('pen-lote').value}, FV: ${document.getElementById('pen-f').value}, INVIMA: ${document.getElementById('pen-inv').value}` : "";
+            const {d,b} = parseDD('pen-dd');
+
+            document.getElementById('pen-out').value = `INGRESA PACIENTE A SALA, ALERTA, ORIENTAD${e}, TRAE ORDEN PARA ADMINISTRAR PENICILINA BENZATÍNICA 2.400.000 UI IM COMO TRATAMIENTO PARA ${document.getElementById('pen-mot').value}.
+
+SE REVISA ORDEN Y APLICA LISTA DE CHEQUEO. ${aler} (DIF A PENICILINA).${seg} SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}). SE FIRMA CONSENTIMIENTO.
+
+SE REALIZA PRUEBA DE SENSIBILIDAD EN ${document.getElementById('pen-pru').value} CON 0.1 ML DE PENICILINA SÓDICA. PASADOS 20 MINUTOS RESULTADO NEGATIVO.
+
+SE UBICA ${al} PACIENTE EN CUBÍCULO ${document.getElementById('pen-cub').value}. SE ADMINISTRA PENICILINA EN ${document.getElementById('pen-apl').value} SIN REACCIONES. SE DEJA 10 MINUTOS EN OBSERVACIÓN. SALE PACIENTE ALERTA CON RECOMENDACIONES.`.toUpperCase();
+        });
+        document.getElementById('pen-clr-btn').addEventListener('click', () => { document.getElementById('pen-form').reset(); document.getElementById('pen-out').value=''; document.getElementById('pen-aler-div').style.display='none'; document.getElementById('pen-seg-div').style.display='none'; });
+
+        // --- RETIRO DE PUNTOS ---
+        document.getElementById('ret-gen-btn').addEventListener('click', () => {
+            const e = document.querySelector('input[name="ret-gen"]:checked').value==='MASCULINO'?'O':'A', al=document.querySelector('input[name="ret-gen"]:checked').value==='MASCULINO'?'AL':'A LA';
+            const {d,b} = parseDD('ret-dd');
+            document.getElementById('ret-out').value = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA Y ORIENTAD${e}, TRAE ORDEN PARA RETIRO DE PUNTOS. SE VERIFICA ORDEN Y SE FIRMA CONSENTIMIENTO. 
+
+SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+
+SE UBICA EN CUBÍCULO ${document.getElementById('ret-cub').value}, POSICIÓN ${document.getElementById('ret-pos').value}. SE REALIZA LIMPIEZA Y DESINFECCIÓN EN ZONA DE SUTURA (${document.getElementById('ret-ub').value}). SE RETIRAN ${document.getElementById('ret-can').value} PUNTOS VERIFICANDO QUE SE HAYAN EXTRAÍDO EN SU TOTALIDAD. NO SE PRESENTAN COMPLICACIONES. 
+
+SALE PACIENTE ALERTA Y ORIENTAD${e}, CON RECOMENDACIONES DE CUIDADO EN CASA.`.toUpperCase();
+        });
+        document.getElementById('ret-clr-btn').addEventListener('click', () => { document.getElementById('ret-form').reset(); document.getElementById('ret-out').value=''; });
+
+        // --- DERMATOLOGÍA ---
+        let derProc = '';
+        function setDerProc(t) {
+            derProc = t; document.querySelectorAll('.der-btn').forEach(b=>b.classList.remove('bg-indigo-600','text-white')); document.getElementById('btn-'+t).classList.add('bg-indigo-600','text-white');
+            document.getElementById('der-form').classList.remove('hidden');
+            const n = {'BIOPSIA':'BIOPSIA DE LESIÓN', 'RESECCION':'RESECCIÓN DE LESIÓN', 'INFILTRACION':'INFILTRACION', 'CRIOTERAPIA':'CRIOTERAPIA', 'NASOLARINGOSCOPIA':'NASOLARINGOSCOPIA', 'OTRO_PROC':'PROCEDIMIENTO MENOR'};
+            document.getElementById('der-nom').value = n[t]||'';
+            
+            const isNaso = t==='NASOLARINGOSCOPIA';
+            document.getElementById('der-zona-div').style.display = isNaso?'none':'grid';
+            document.getElementById('der-sut-div').style.display = isNaso?'none':'block';
+            document.getElementById('der-rec-div').style.display = isNaso?'none':'flex';
+            document.getElementById('der-pat-div').style.display = isNaso?'none':'block';
+
+            const dyn = document.getElementById('der-dyn');
+            if(t==='BIOPSIA'||t==='RESECCION'||t==='OTRO_PROC'){
+                dyn.innerHTML=`<input type="text" id="der-ins" placeholder="Instrumental" class="w-full p-2 mb-2 border rounded text-xs"><input type="text" id="der-ane" value="ROXICAINA 1% S/E Y BUPIVACAÍNA" class="w-full p-2 mb-2 border rounded text-xs"><label class="flex items-center text-xs font-bold"><input type="checkbox" class="mr-2" id="der-chk-cau" onchange="document.getElementById('der-cau-det').style.display=this.checked?'block':'none'">Cauterización</label><input type="text" id="der-cau-det" placeholder="Método Cauterización" class="w-full p-2 mt-2 border rounded text-xs" style="display:none;">`;
+            } else if(t==='INFILTRACION'){ dyn.innerHTML=`<input type="text" id="der-far" value="KENACORT" class="w-full p-2 border rounded text-xs">`; }
+            else { dyn.innerHTML=''; }
+            
+            dyn.querySelectorAll('input').forEach(i=>i.addEventListener('input',procUpdateAll));
+            procUpdateAll();
+        }
+        function procUpdateAll() {
+            if(!derProc) return;
+            const dr = document.getElementById('der-doc').value || "[PROFESIONAL NO SELECCIONADO]";
+            const {d,b} = parseDD('der-dd');
+            const aler = document.getElementById('der-chk-aler').checked ? `SE INDAGAN ALERGIAS, PACIENTE REFIERE ALERGIAS A ${document.getElementById('der-aler-esp').value}` : "SE INDAGAN ALERGIAS, PACIENTE NIEGA ALERGIAS";
+            const rC = document.getElementById('der-rc').value, rP = document.getElementById('der-rp').value;
+            const nom = document.getElementById('der-nom').value, zon = document.getElementById('der-zona').value, pos = document.getElementById('der-pos').value;
+            const g = document.querySelector('input[name="der-gen"]:checked')?.value || 'MASCULINO'; 
+            const e = g==='MASCULINO'?'O':'A';
+
+            let txt = "";
+
+            if(derProc==='NASOLARINGOSCOPIA'){
+                if (dr === "DR JULIO TORRES" || dr === "DRA JULIANA ANGULO") {
+                    txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${aler}. SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${rC}. RIESGO DE LESIÓN DE PIEL: ${rP}.
+
+SE DILIGENCIA CONSENTIMIENTO INFORMADO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+
+SE UBICA AL PACIENTE EN LA CAMILLA EN POSICIÓN FOWLER. EL ESPECIALISTA REALIZA SEDACIÓN LOCAL MEDIANTE LA APLICACIÓN DE ANESTESIA TÓPICA (ROXICAÍNA EN ATOMIZADOR) Y DESCONGESTIONANTE NASAL (OXIMETAZOLINA AL 0.05%). POSTERIORMENTE, SE LLEVA A CABO NASOLARINGOSCOPIA, LA CUAL FINALIZA SIN COMPLICACIONES. SE HACE ENTREGA DE LA FÓRMULA MÉDICA Y SE BRINDAN LAS RECOMENDACIONES POST-PROCEDIMIENTO.
+
+SE REALIZA LA LIMPIEZA Y DESINFECCIÓN DEL EQUIPO BIOMÉDICO DE ACUERDO CON EL PROTOCOLO INSTITUCIONAL. EL PACIENTE EGRESA DE LA SALA POR SUS PROPIOS MEDIOS, EN CONDICIONES ÓPTIMAS: CONSCIENTE, ALERTA Y ORIENTAD${e}.`;
+                } else if (dr === "DR JORGE HERRERA") {
+                    txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${aler}. SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${rC}. RIESGO DE LESIÓN DE PIEL: ${rP}.
+
+SE DILIGENCIA CONSENTIMIENTO INFORMADO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+
+SE UBICA AL PACIENTE EN LA CAMILLA EN POSICIÓN FOWLER. EL DR. HERRERA REALIZA PROCEDIMIENTO DE NASOLARINGOSCOPIA, EL CUAL FINALIZA SIN COMPLICACIONES. POSTERIORMENTE, SE HACE ENTREGA DE LA FÓRMULA MÉDICA Y SE BRINDAN LAS RECOMENDACIONES POST-PROCEDIMIENTO.
+
+SE REALIZA LA LIMPIEZA Y DESINFECCIÓN DEL EQUIPO BIOMÉDICO DE ACUERDO CON EL PROTOCOLO INSTITUCIONAL. EL PACIENTE EGRESA DE LA SALA DE PROCEDIMIENTOS POR SUS PROPIOS MEDIOS, EN CONDICIONES ÓPTIMAS: CONSCIENTE, ALERTA Y ORIENTAD${e}.`;
+                } else {
+                    txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${aler}. SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${rC}. RIESGO DE LESIÓN DE PIEL: ${rP}.\n\nSE DILIGENCIA CONSENTIMIENTO INFORMADO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).\n\nSE UBICA EN POSICIÓN FOWLER. ${dr} REALIZA NASOLARINGOSCOPIA, FINALIZANDO SIN COMPLICACIONES. SE ENTREGA FÓRMULA MÉDICA.\n\n`;
+                }
+            } else {
+                txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${aler}. SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${rC}. RIESGO DE LESIÓN DE PIEL: ${rP}.\n\nSE DILIGENCIA CONSENTIMIENTO INFORMADO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).\n\n`;
+                txt += `SE UBICA AL PACIENTE EN CAMILLA EN POSICIÓN ${pos}, EMPLEANDO TÉCNICA ASÉPTICA, SE REALIZA LIMPIEZA EN ${zon}.\n`;
+                if(derProc==='BIOPSIA'||derProc==='RESECCION'||derProc==='OTRO_PROC'){
+                    const ane = document.getElementById('der-ane')?.value||'', ins = document.getElementById('der-ins')?.value||'', cau = document.getElementById('der-chk-cau')?.checked ? ` SE REALIZA CAUTERIZACIÓN ${document.getElementById('der-cau-det').value}`:'';
+                    txt += `BAJO ANESTESIA LOCAL CON ${ane}, ${dr} REALIZA ${nom} ${ins?'CON '+ins:''}.${cau} SIN COMPLICACIONES.\n`;
+                } else if(derProc==='INFILTRACION'){ txt += `SE REALIZA ${nom} CON ${document.getElementById('der-far')?.value} EN ${zon}. SIN COMPLICACIONES.\n`; }
+                else { txt += `${dr} REALIZA ${nom} EN ${zon}. SIN COMPLICACIONES.\n`; }
+                
+                if(document.getElementById('der-chk-rec').checked) txt += "SE HACE RECUENTO DE MATERIAL Y GASAS COMPLETO Y CONFORME.\n";
+                if(document.getElementById('der-chk-sut').checked) txt += `SE REALIZA SUTURA CON ${document.getElementById('der-sut-mat').value}, PUNTOS: ${document.getElementById('der-sut-pun').value}.\n`;
+                
+                let recs = Array.from(document.querySelectorAll('.der-recom-chk:checked')).map(r=>r.value==='RETIRO DE PUNTOS POR MÉDICO'?`RETIRO PUNTOS DR/A: ${document.getElementById('der-ret-med').value}`:r.value);
+                txt += `SE DEJA CUBIERTA LA LESIÓN CON ${document.getElementById('der-cur').value}. INDICACIONES DE EGRESO: ${recs.length?recs.join(', '):'GENERALES'}.\n`;
+                
+                if(document.getElementById('der-chk-pat').checked) txt += `SE TOMAN ${document.getElementById('der-pat-fra').value} FRASCOS PARA PATOLOGÍA, SE ENVIAN MUESTRAS AL LABORATORIO DE ${document.getElementById('der-pat-lab').value}.\n`;
+            }
+            if(document.getElementById('der-chk-seg').checked) txt += "REGISTRADO EN SEGUIMIENTO PREMIUM.\n";
+            if(derProc !== 'NASOLARINGOSCOPIA') txt += "SALE PACIENTE EN ÓPTIMAS CONDICIONES.";
+            
+            document.getElementById('der-out').value = txt.toUpperCase();
+            const copyBtn = document.getElementById('der-copy-btn');
+            if (copyBtn) {
+                copyBtn.disabled = false; 
+                copyBtn.classList.remove('opacity-50','cursor-not-allowed');
+            }
+        }
+        document.querySelectorAll('#app-procedimientos input, #app-procedimientos select').forEach(i=>i.addEventListener('change', procUpdateAll));
+        function resetDer() { document.getElementById('der-out').value=''; derProc=''; document.querySelectorAll('.der-btn').forEach(b=>b.classList.remove('bg-indigo-600','text-white')); document.getElementById('der-form').classList.add('hidden'); const cb=document.getElementById('der-copy-btn'); if(cb){cb.disabled=true; cb.classList.add('opacity-50','cursor-not-allowed');} }
+
+        // --- RESONANCIA ---
+        function toggleRes() {
+            const t = document.getElementById('res-tipo').value;
+            document.getElementById('res-fs-cont').style.display = t!=='SIMPLE'?'block':'none';
+            document.getElementById('res-hio-div').style.display = t==='HIOSCINA'?'grid':'none';
+        }
+        document.getElementById('res-gen-btn').addEventListener('click', () => {
+            const t = document.getElementById('res-tipo').value;
+            const g = document.querySelector('input[name="res-gen"]:checked').value;
+            const e = g==='MASCULINO'?'O':'A';
+            const {d,b} = parseDD('res-dd');
+            const mot = document.getElementById('res-mot').value || "CEFALEA";
+            const mov = document.getElementById('res-mov').value;
+
+            const hasTrau = document.getElementById('res-chk-trau').checked;
+            const trauText = hasTrau ? `ANTECEDENTE DE ${document.getElementById('res-trau-esp').value}` : "NIEGA TRAUMAS";
+
+            const hasQx = document.getElementById('res-chk-qx').checked;
+            const qxText = hasQx ? `${document.getElementById('res-qx-esp').value}` : "NIEGA ANTECEDENTES QUIRÚRGICOS";
+
+            const hasAler = document.getElementById('res-chk-aler').checked;
+            const alerText = hasAler ? `REFIERE ALERGIA A ${document.getElementById('res-aler-esp').value}` : "NIEGA ALERGIAS";
+
+            let txt = "";
+            if(t==='SIMPLE'){
+                txt = `INGRESA PACIENTE CONSCIENTE, ALERTA Y ORIENTAD${e}, ${mov}. ASISTE DE FORMA AMBULATORIA PARA LA TOMA DE EXAMEN DIAGNÓSTICO INDICADO DEBIDO A ${mot}.
+
+ANTECEDENTES PERSONALES:
+- TRAUMÁTICOS: ${trauText}.
+- QUIRÚRGICOS: ${qxText}.
+- ALÉRGICOS: ${alerText}.
+
+SE EXPLICA DETALLADAMENTE EL PROCEDIMIENTO, OBTENIENDO LA ACEPTACIÓN Y FIRMA DEL CONSENTIMIENTO INFORMADO PARA LA EXPOSICIÓN A CAMPOS ELECTROMAGNÉTICOS. ASIMISMO, SE SOCIALIZAN LOS DEBERES Y DERECHOS INSTITUCIONALES. (DERECHO: ${d}. DEBER: ${b}).
+
+PREVIO CUMPLIMIENTO DEL PROTOCOLO INSTITUCIONAL DE ANTISEPSIA Y DESINFECCIÓN CON MELISEPTOL DE LA ZONA CORRESPONDIENTE, SE INGRESA PACIENTE AL ÁREA DE RESONADOR. SE COLOCA PROTECCIÓN AUDITIVA, SE ENTREGA BOTÓN DE LLAMADO Y SE EXPLICA CÓMO ACCIONARLO. SE UBICA AL PACIENTE EN LA MESA Y SE COLOCA LA ANTENA CORRESPONDIENTE. EL ESTUDIO TRANSCURRE SIN COMPLICACIONES NI EVENTUALIDADES.
+
+SE BRINDAN RECOMENDACIONES CLARAS AL EGRESO Y SE ORIENTA AL PACIENTE SOBRE LOS CANALES Y TIEMPOS PARA LA ENTREGA DE RESULTADOS. EGRESA DE LA INSTITUCIÓN ${mov}, EN ADECUADAS CONDICIONES GENERALES, ESTABLE Y SIN ALTERACIONES APARENTES.`;
+            } else {
+                const comp = document.getElementById('res-chk-comp').checked;
+                const isHioscina = t==='HIOSCINA';
+                let hioscinaText = "";
+                if(isHioscina){
+                    hioscinaText = ` PREVIA ASEPSIA DE ZONA, SE ADMINISTRA B. HIOSCINA ${document.getElementById('res-hio-d').value} MG INTRAMUSCULAR EN ${document.getElementById('res-hio-s').value} SIN COMPLICACIONES.`;
+                }
+
+                txt = `INGRESA PACIENTE CONSCIENTE, ALERTA Y ORIENTAD${e}, ${mov}. ASISTE DE FORMA AMBULATORIA PARA LA TOMA DE EXAMEN DIAGNÓSTICO CON MEDIO DE CONTRASTE INDICADO POR ${mot}.
+
+ANTECEDENTES PERSONALES:
+- TRAUMÁTICOS: ${trauText}.
+- QUIRÚRGICOS: ${qxText}.
+- ALÉRGICOS: ${alerText}.
+
+SE EXPLICA DETALLADAMENTE EL PROCEDIMIENTO, LOS RIESGOS ASOCIADOS A LA CANALIZACIÓN VENOSA (COMO HEMATOMA O EXTRAVASACIÓN DEL MEDIO DE CONTRASTE) Y LOS SIGNOS Y SÍNTOMAS DE ALARMA. SE RESUELVEN DUDAS Y SE OBTIENE LA ACEPTACIÓN Y FIRMA DE LOS CONSENTIMIENTOS INFORMADOS PARA LA ADMINISTRACIÓN DE CONTRASTE ENDOVENOSO. ASIMISMO, SE SOCIALIZAN LOS DEBERES Y DERECHOS INSTITUCIONALES. (DERECHO: ${d}. DEBER: ${b}).
+
+PREVIO LAVADO DE MANOS Y BAJO RIGUROSA TÉCNICA ASÉPTICA, SE REALIZA CANALIZACIÓN DE VENA ${document.getElementById('res-ven').value} ${document.getElementById('res-mie').value} CON CATÉTER VENOSO PERIFÉRICO (YELCO) CALIBRE ${document.getElementById('res-yel').value} EN ${document.getElementById('res-pun').value}. SE COMPRUEBA RETORNO VENOSO Y SE VERIFICA PERMEABILIDAD SIN COMPLICACIONES.${hioscinaText}
+
+SE INGRESA PACIENTE AL ÁREA DE RESONADOR, CUYA CAMILLA HA SIDO PREVIAMENTE DESINFECTADA CON MELISEPTOL SEGÚN PROTOCOLO INSTITUCIONAL. SE POSICIONA ADECUADAMENTE Y SE COLOCA LA ANTENA CORRESPONDIENTE. SE ENTREGA AL PACIENTE AL TECNÓLOGO DE TURNO, QUIEN REALIZA EL POSICIONAMIENTO FINAL E INICIA EL ESTUDIO. DURANTE EL ESTUDIO Y POR MEDIO DE INYECTOR AUTOMÁTICO, SE ADMINISTRAN ${document.getElementById('res-dos').value} CC DE ${document.getElementById('res-med').value} POR VÍA INTRAVENOSA, EL PROCEDIMIENTO TRANSCURRE SIN INCIDENTES NI COMPLICACIONES${comp?', EXCEPTO PRESENTACIÓN DE REACCIÓN ALÉRGICA AL MEDIO DE CONTRASTE, SE TRASLADA USUARIO A SALA DE ENFERMERÍA PARA MONITORIZACIÓN Y VALORACIÓN MÉDICA':''}.
+
+FINALIZADO EL ESTUDIO${comp?'':', SE RETIRA EL ACCESO VENOSO PERIFÉRICO Y SE VIGILA A LA/AL PACIENTE, DESCARTANDO REACCIONES ALÉRGICAS INMEDIATAS O SIGNOS DE EXTRAVASACIÓN'}. SE BRINDAN RECOMENDACIONES DE EGRESO, EDUCACIÓN SOBRE ADECUADA HIDRATACIÓN Y PAUTAS DIETÉTICAS, Y SE ORIENTA SOBRE LOS CANALES Y TIEMPOS PARA LA ENTREGA DE RESULTADOS. EGRESA DE LA INSTITUCIÓN ${mov}, EN ADECUADAS CONDICIONES GENERALES, ESTABLE Y SIN ALTERACIONES APARENTES.`;
+            }
+            document.getElementById('res-out').value = txt.toUpperCase();
+        });
+        document.getElementById('res-clr-btn').addEventListener('click', () => { document.getElementById('res-form').reset(); document.getElementById('res-out').value=''; toggleRes(); document.getElementById('res-trau-esp').style.display='none'; document.getElementById('res-qx-esp').style.display='none'; document.getElementById('res-aler-esp').style.display='none'; });
+
+        // --- TAC ---
+        function toggleTac() {
+            const t = document.getElementById('tac-tipo').value;
+            document.getElementById('tac-ped-div').style.display = t==='PEDIATRICO'?'grid':'none';
+            document.getElementById('tac-mov-div').style.display = t==='PEDIATRICO'?'none':'block';
+            document.getElementById('tac-fs-cont').style.display = t==='CONTRASTE'?'block':'none';
+        }
+        document.getElementById('tac-gen-btn').addEventListener('click', () => {
+            const t = document.getElementById('tac-tipo').value;
+            const g = document.querySelector('input[name="tac-gen"]:checked').value;
+            const e = g==='MASCULINO'?'O':'A';
+            const {d,b} = parseDD('tac-dd');
+            const mot = document.getElementById('tac-mot').value || "CUADRO DE CEFALEA";
+            
+            const hasTrau = document.getElementById('tac-chk-trau').checked;
+            const trauText = hasTrau ? `ANTECEDENTE DE ${document.getElementById('tac-trau-esp').value}` : "NIEGA TRAUMAS";
+            
+            const hasQx = document.getElementById('tac-chk-qx').checked;
+            const qxText = hasQx ? `${document.getElementById('tac-qx-esp').value}` : "NIEGA ANTECEDENTES QUIRÚRGICOS";
+            
+            const hasAler = document.getElementById('tac-chk-aler').checked;
+            const alerText = hasAler ? `REFIERE ALERGIA A ${document.getElementById('tac-aler-esp').value}` : "NIEGA ALERGIAS";
+
+            let txt = "";
+            if(t==='ADULTO'){
+                txt = `INGRESA PACIENTE ${g==='MASCULINO'?'MASCULINO':'FEMENINO'}, ALERTA, ORIENTAD${e} EN LAS TRES ESFERAS, CONSCIENTE, AMBULANDO POR SUS PROPIOS MEDIOS. ASISTE DE FORMA AMBULATORIA PARA LA REALIZACIÓN DE ESTUDIO DIAGNÓSTICO POR IMAGEN INDICADO DEBIDO A ${mot}.
+
+ANTECEDENTES PERSONALES:
+- TRAUMÁTICOS: ${trauText}.
+- QUIRÚRGICOS: ${qxText}.
+- ALÉRGICOS: ${alerText}.
+
+SE EXPLICA DETALLADAMENTE EL PROCEDIMIENTO, OBTENIENDO LA ACEPTACIÓN Y FIRMA DEL CONSENTIMIENTO INFORMADO PARA LA EXPOSICIÓN A RADIACIONES IONIZANTES. ASIMISMO, SE SOCIALIZAN LOS DERECHOS Y DEBERES DEL PACIENTE. (DERECHO: ${d}. DEBER: ${b}).
+
+PREVIO CUMPLIMIENTO DEL PROTOCOLO INSTITUCIONAL DE ANTISEPSIA Y DESINFECCIÓN CON MELISEPTOL DE LA ZONA CORRESPONDIENTE, SE COLABORA EN LA TOMA DEL ESTUDIO RADIOLÓGICO, EL CUAL TRANSCURRE SIN COMPLICACIONES NI EVENTUALIDADES.
+
+SE BRINDAN RECOMENDACIONES CLARAS AL EGRESO Y SE ORIENTA AL PACIENTE SOBRE LOS CANALES Y TIEMPOS PARA LA ENTREGA DE RESULTADOS. EGRESA DE LA INSTITUCIÓN AMBULANDO POR SUS PROPIOS MEDIOS, EN ADECUADAS CONDICIONES GENERALES, ESTABLE Y SIN ALTERACIONES APARENTES.`;
+            } else if(t==='PEDIATRICO'){
+                const ac = document.getElementById('tac-acomp').value, est = document.getElementById('tac-est').value, sal = document.getElementById('tac-sal').value;
+                txt = `INGRESA PACIENTE PEDIÁTRIC${e} EN COMPAÑÍA DE SU ${ac}, SE OBSERVA ${est}, ALERTA Y CONSCIENTE. ASISTE DE FORMA AMBULATORIA PARA LA REALIZACIÓN DE ESTUDIO DIAGNÓSTICO POR IMAGEN INDICADO DEBIDO A ${mot}.
+
+ANTECEDENTES PERSONALES:
+- TRAUMÁTICOS: ${trauText}.
+- QUIRÚRGICOS: ${qxText}.
+- ALÉRGICOS: ${alerText}.
+
+SE EXPLICA DETALLADAMENTE EL PROCEDIMIENTO A LOS PADRES O ACOMPAÑANTE, OBTENIENDO LA ACEPTACIÓN Y FIRMA DEL CONSENTIMIENTO INFORMADO POR PARTE DE ${ac} PARA LA EXPOSICIÓN A RADIACIONES IONIZANTES. SE SOCIALIZAN LOS DERECHOS Y DEBERES DEL PACIENTE. (DERECHO: ${d}. DEBER: ${b}).
+
+PREVIO CUMPLIMIENTO DEL PROTOCOLO INSTITUCIONAL DE ANTISEPSIA Y DESINFECCIÓN CON MELISEPTOL DE LA ZONA CORRESPONDIENTE, SE PROVEE CHALECO PLOMADO Y SE COLABORA EN LA TOMA DEL ESTUDIO RADIOLÓGICO, EL CUAL TRANSCURRE SIN COMPLICACIONES NI EVENTUALIDADES.
+
+SE BRINDAN RECOMENDACIONES CLARAS AL EGRESO Y SE ORIENTA SOBRE LOS CANALES Y TIEMPOS PARA LA ENTREGA DE RESULTADOS. EGRESA ${sal}, EN ADECUADAS CONDICIONES GENERALES, ESTABLE Y SIN ALTERACIONES APARENTES.`;
+            } else if(t==='CONTRASTE'){
+                const comp = document.getElementById('tac-chk-comp').checked;
+                txt = `INGRESA PACIENTE CONSCIENTE, ALERTA Y ORIENTAD${e}, AMBULANDO POR SUS PROPIOS MEDIOS. ASISTE DE FORMA AMBULATORIA PARA LA TOMA DE EXAMEN DIAGNÓSTICO CON MEDIO DE CONTRASTE INDICADO POR ${mot}.
+
+ANTECEDENTES PERSONALES:
+- TRAUMÁTICOS: ${trauText}.
+- QUIRÚRGICOS: ${qxText}.
+- ALÉRGICOS: ${alerText}.
+
+SE EXPLICA DETALLADAMENTE EL PROCEDIMIENTO, LOS RIESGOS ASOCIADOS A LA CANALIZACIÓN VENOSA (COMO HEMATOMA O EXTRAVASACIÓN DEL MEDIO DE CONTRASTE) Y LOS SIGNOS Y SÍNTOMAS DE ALARMA. SE RESUELVEN DUDAS Y SE OBTIENE LA ACEPTACIÓN Y FIRMA DE LOS CONSENTIMIENTOS INFORMADOS PARA LA ADMINISTRACIÓN DE CONTRASTE ENDOVENOSO. ASIMISMO, SE SOCIALIZAN LOS DEBERES Y DERECHOS INSTITUCIONALES. (DERECHO: ${d}. DEBER: ${b}).
+
+PREVIO LAVADO DE MANOS Y BAJO RIGUROSA TÉCNICA ASÉPTICA, SE REALIZA CANALIZACIÓN DE VENA ${document.getElementById('tac-ven').value} ${document.getElementById('tac-mie').value} CON CATÉTER VENOSO PERIFÉRICO (YELCO) CALIBRE ${document.getElementById('tac-yel').value} EN ${document.getElementById('tac-pun').value}. SE COMPRUEBA RETORNO VENOSO Y SE VERIFICA PERMEABILIDAD SIN COMPLICACIONES.
+
+SE INGRESA AL PACIENTE AL ÁREA DEL TOMÓGRAFO, CUYA CAMILLA HA SIDO PREVIAMENTE DESINFECTADA CON MELISEPTOL SEGÚN PROTOCOLO INSTITUCIONAL. SE POSICIONA ADECUADAMENTE Y SE CONECTA AL INYECTOR AUTOMÁTICO. SE ENTREGA AL PACIENTE AL TECNÓLOGO DE TURNO, QUIEN REALIZA EL POSICIONAMIENTO FINAL E INICIA EL ESTUDIO. PREVIO CALENTAMIENTO DEL MEDIO DE CONTRASTE ${document.getElementById('tac-med').value} A 37 °C, SE ADMINISTRAN ${document.getElementById('tac-dos').value} CC POR VÍA INTRAVENOSA MEDIANTE EL INYECTOR, EL PROCEDIMIENTO TRANSCURRE SIN INCIDENTES NI COMPLICACIONES${comp?', EXCEPTO PRESENTACIÓN DE REACCIÓN ALÉRGICA AL MEDIO DE CONTRASTE, SE TRASLADA USUARIO A SALA DE ENFERMERÍA PARA MONITORIZACIÓN Y VALORACIÓN MÉDICA':''}.
+
+FINALIZADO EL ESTUDIO${comp?'':', SE RETIRA EL ACCESO VENOSO PERIFÉRICO Y SE VIGILA AL PACIENTE, DESCARTANDO REACCIONES ALÉRGICAS INMEDIATAS O SIGNOS DE EXTRAVASACIÓN'}. SE BRINDAN RECOMENDACIONES DE EGRESO, EDUCACIÓN SOBRE ADECUADA HIDRATACIÓN Y PAUTAS DIETÉTICAS, Y SE ORIENTA SOBRE LOS CANALES Y TIEMPOS PARA LA ENTREGA DE RESULTADOS. EGRESA DE LA INSTITUCIÓN AMBULANDO POR SUS PROPIOS MEDIOS, EN ADECUADAS CONDICIONES GENERALES, ESTABLE Y SIN ALTERACIONES APARENTES.`;
+            }
+            document.getElementById('tac-out').value = txt.toUpperCase();
+        });
+        document.getElementById('tac-clr-btn').addEventListener('click', () => { document.getElementById('tac-form').reset(); document.getElementById('tac-out').value=''; toggleTac(); document.getElementById('tac-trau-esp').style.display='none'; document.getElementById('tac-aler-esp').style.display='none'; document.getElementById('tac-qx-esp').style.display='none'; });
+
+        // --- GLUCOMETRÍA ---
+        document.getElementById('glu-gen-btn').addEventListener('click', () => {
+            const g = document.querySelector('input[name="glu-gen"]:checked').value, e = g==='MASCULINO'?'O':'A', al=g==='MASCULINO'?'AL':'A LA';
+            const {d,b} = parseDD('glu-dd');
+            const aler = document.getElementById('glu-chk-aler').checked ? `SE INDAGAN ALERGIAS, REFIERE ALERGIAS A ${document.getElementById('glu-aler-esp').value}` : "SE INDAGAN ALERGIAS, NIEGA ALERGIAS";
+            const val = document.getElementById('glu-val').value || "___";
+            const mot = document.getElementById('glu-mot').value || "CONTROL RUTINARIO";
+            const dedo = document.getElementById('glu-dedo').value;
+            const mano = document.getElementById('glu-mano').value;
+
+            document.getElementById('glu-out').value = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS, TRAE ORDEN MÉDICA PARA TOMA DE GLUCOMETRÍA (${mot}).
+
+SE REVISA ORDEN MÉDICA. ${aler}. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+
+PREVIO LAVADO DE MANOS Y BAJO TÉCNICA ASÉPTICA, SE EXPLICA EL PROCEDIMIENTO ${al} PACIENTE, QUIEN REFIERE ENTENDER Y ACEPTAR. SE REALIZA ASEPSIA EN ZONA LATERAL DE ${dedo} DE MANO ${mano}, SE REALIZA PUNCIÓN CON LANCETA ESTÉRIL, SE OBTIENE MUESTRA DE SANGRE CAPILAR Y SE COLOCA EN TIRA REACTIVA DE GLUCOMETRO PREVIAMENTE CALIBRADO. SE OBTIENE RESULTADO DE ${val} MG/DL. SE EJERCE HEMOSTASIA LEVE CON TÓRULA SECA.
+
+SE BRINDAN RECOMENDACIONES CLÍNICAS Y SE INFORMA EL VALOR OBTENIDO. SALE PACIENTE DE SALA DE ENFERMERÍA, ALERTA Y ORIENTAD${e}, EN ESTABLES Y ÓPTIMAS CONDICIONES.`.toUpperCase();
+        });
+        document.getElementById('glu-clr-btn').addEventListener('click', () => { document.getElementById('glu-form').reset(); document.getElementById('glu-out').value=''; document.getElementById('glu-aler-div').style.display='none'; });
+
+    </script>
+</body>
+</html>
