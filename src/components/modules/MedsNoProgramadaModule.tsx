@@ -26,7 +26,7 @@ export const MedsNoProgramadaModule: React.FC<Props> = ({ onSaveToHistory }) => 
   const [derechoDeber, setDerechoDeber] = useState(DERECHOS_Y_DEBERES[2].fullString);
 
   // Med 1 - Unificado Nombre del Medicamento y Dosis
-  const [med1, setMed1] = useState('DICLOFENACO 75 MG');
+  const [med1, setMed1] = useState('MELOXICAM 75 MG');
   const [via1, setVia1] = useState<'INTRAMUSCULAR' | 'SUBCUTÁNEA' | 'OTRO'>('INTRAMUSCULAR');
   const [via1Otro, setVia1Otro] = useState('');
   const [sitio1, setSitio1] = useState(SITIOS_INTRAMUSCULAR[0].value);
@@ -172,12 +172,12 @@ SE INDICA AL PACIENTE PERMANECER 10 MINUTOS EN EL CUBÍCULO COMO TIEMPO DE OBSER
     setMotivo('CÓLICO RENAL AGUDO');
     setAnticoagulado('NO');
     setTieneAlergias(false);
-    setMed1('HIOSCINA N-BUTILBROMURO 20 MG');
+    setMed1('BUTIL BROMURO DE HIOSCINA 20 MG');
     setVia1('INTRAMUSCULAR');
     setVia1Otro('');
     setSitio1('CUADRANTE SUPERIOR EXTERNO DEL GLUTEO DERECHO');
     setTieneMed2(true);
-    setMed2('DIPIRONA 1 G');
+    setMed2('HIOSCINA+ DIPIRONA 20MG/2.5GR');
     setVia2('INTRAMUSCULAR');
     setVia2Otro('');
     setSitio2('CUADRANTE SUPERIOR EXTERNO DEL GLUTEO IZQUIERDO');
