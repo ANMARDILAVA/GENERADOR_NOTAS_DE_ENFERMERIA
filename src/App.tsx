@@ -44,6 +44,17 @@ export default function App() {
     saveAdminConfig(newConfig);
   };
 
+  const handleRestoreBaseDefault = (moduleId: string) => {
+    const overrides = { ...(adminConfig.templateOverrides || {}) };
+    delete overrides[moduleId];
+    const updated = {
+      ...adminConfig,
+      templateOverrides: overrides,
+    };
+    setAdminConfig(updated);
+    saveAdminConfig(updated);
+  };
+
   const handleSaveToHistory = (
     moduleId: string,
     noteText: string,
@@ -57,8 +68,6 @@ export default function App() {
     setSavedNotes(getSavedNotes());
     return note;
   };
-
-
 
   const renderActiveModule = () => {
     // 1. Admin Panel
@@ -75,7 +84,29 @@ export default function App() {
       );
     }
 
-    // 2. Native Clinical Modules (Priority: Always render rich clinical modules)
+    // 2. Check if this module has been customized/overridden by the administrator in the Admin Panel
+    const override = adminConfig.templateOverrides?.[activeModule];
+    const baseTmpl = ALL_BASE_TEMPLATES.find((t) => t.id === activeModule);
+
+    if (override && baseTmpl) {
+      const mergedTemplate: CustomTemplate = {
+        ...baseTmpl,
+        ...override,
+        fields: override.fields || baseTmpl.fields,
+      };
+      return (
+        <CustomTemplateModule
+          template={mergedTemplate}
+          isOverriddenBase={true}
+          onRestoreBaseDefault={() => handleRestoreBaseDefault(activeModule)}
+          onSaveToHistory={(text, summary) =>
+            handleSaveToHistory(mergedTemplate.id, text, summary)
+          }
+        />
+      );
+    }
+
+    // 3. Default Native Clinical Modules (Render rich native forms when not overridden)
     switch (activeModule) {
       case 'curacion':
         return (

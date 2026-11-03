@@ -395,12 +395,12 @@ export function getAdminConfig(): AdminConfig {
     const raw = localStorage.getItem(ADMIN_STORAGE_KEY);
     if (!raw) return DEFAULT_ADMIN_CONFIG;
     const parsed = JSON.parse(raw);
-    const overrides = parsed.templateOverrides && typeof parsed.templateOverrides === 'object' ? { ...parsed.templateOverrides } : {};
-    delete overrides['medicamentos-no-programada'];
-    delete overrides['medicamentos-ce'];
+    const overrides =
+      parsed.templateOverrides && typeof parsed.templateOverrides === 'object'
+        ? { ...parsed.templateOverrides }
+        : {};
 
     const rawCustom = Array.isArray(parsed.customTemplates) ? parsed.customTemplates : [];
-    const cleanCustom = rawCustom.filter((t: CustomTemplate) => t.id !== 'medicamentos-no-programada' && t.id !== 'medicamentos-ce');
 
     return {
       adminPin: parsed.adminPin || DEFAULT_ADMIN_CONFIG.adminPin,
@@ -408,7 +408,7 @@ export function getAdminConfig(): AdminConfig {
       disabledModuleIds: Array.isArray(parsed.disabledModuleIds) ? parsed.disabledModuleIds : [],
       deletedTemplateIds: Array.isArray(parsed.deletedTemplateIds) ? parsed.deletedTemplateIds : [],
       templateOverrides: overrides,
-      customTemplates: cleanCustom,
+      customTemplates: rawCustom,
     };
   } catch (err) {
     console.error('Error reading admin config from localStorage:', err);

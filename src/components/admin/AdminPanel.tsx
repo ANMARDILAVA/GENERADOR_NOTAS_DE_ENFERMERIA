@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { AdminConfig, CustomTemplate, CustomField } from '../../types/clinical';
 import {
   getAllInstitutionalTemplates,
   ALL_BASE_TEMPLATES,
 } from '../../config/templatesConfig';
-import { DERECHOS_Y_DEBERES, isOtroOption } from '../../constants/clinicalOptions';
+import {
+  DERECHOS_Y_DEBERES,
+  isOtroOption,
+  ANTICOAGULANTES_COMUNES,
+} from '../../constants/clinicalOptions';
 import {
   ShieldAlert,
   Sliders,
@@ -22,6 +26,8 @@ import {
   Eye,
   Settings2,
   Sparkles,
+  Download,
+  Upload,
 } from 'lucide-react';
 
 interface Props {
@@ -80,6 +86,8 @@ export const AdminPanel: React.FC<Props> = ({
 
   // Simulation state for auxiliary nurse preview
   const [simGender, setSimGender] = useState<'MASCULINO' | 'FEMENINO'>('MASCULINO');
+  const [simAnticoagulado, setSimAnticoagulado] = useState<'NO' | 'SI'>('NO');
+  const [simMedAnticoagulante, setSimMedAnticoagulante] = useState('');
   const [simAllergies, setSimAllergies] = useState(false);
   const [simAllergyDetail, setSimAllergyDetail] = useState('');
   const [simDerechoDeber, setSimDerechoDeber] = useState(
@@ -87,6 +95,7 @@ export const AdminPanel: React.FC<Props> = ({
   );
   const [simFieldValues, setSimFieldValues] = useState<Record<string, string>>({});
   const [simOtroValues, setSimOtroValues] = useState<Record<string, string>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Search/filter in templates list
   const [searchTerm, setSearchTerm] = useState('');
@@ -208,6 +217,58 @@ export const AdminPanel: React.FC<Props> = ({
     setTimeout(() => setFeedbackMessage(''), 3000);
   };
 
+  // Reset an overridden base template back to factory defaults
+  const handleResetBaseTemplate = (templateId: string, title: string) => {
+    const overrides = { ...(adminConfig.templateOverrides || {}) };
+    delete overrides[templateId];
+    onUpdateAdminConfig({
+      ...adminConfig,
+      templateOverrides: overrides,
+    });
+    setFeedbackMessage(`✓ Plantilla "${title}" restablecida a los valores base originales.`);
+    setTimeout(() => setFeedbackMessage(''), 3000);
+  };
+
+  // Export JSON backup of all templates and settings
+  const handleExportConfig = () => {
+    const dataStr =
+      'data:text/json;charset=utf-8,' +
+      encodeURIComponent(JSON.stringify(adminConfig, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute(
+      'download',
+      `plantillas_enfermeria_backup_${new Date().toISOString().slice(0, 10)}.json`
+    );
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    setFeedbackMessage('✓ Copia de respaldo descargada en formato JSON.');
+    setTimeout(() => setFeedbackMessage(''), 3000);
+  };
+
+  // Import JSON backup of templates and settings
+  const handleImportConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target?.result as string);
+        if (parsed && typeof parsed === 'object') {
+          onUpdateAdminConfig(parsed);
+          setFeedbackMessage('✓ Plantillas restauradas exitosamente desde el archivo JSON.');
+          setTimeout(() => setFeedbackMessage(''), 3500);
+        }
+      } catch (err) {
+        setFeedbackMessage('❌ Error al procesar el archivo JSON de respaldo.');
+        setTimeout(() => setFeedbackMessage(''), 3500);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   // Start Editing Template
   const handleStartEditTemplate = (tmpl: CustomTemplate) => {
     setEditingTemplateId(tmpl.id);
@@ -244,12 +305,25 @@ export const AdminPanel: React.FC<Props> = ({
       ? `SE INDAGAN ALERGIAS, REFIERE ALERGIAS A ${simAllergyDetail.trim().toUpperCase() || 'NO ESPECIFICADAS'}`
       : 'SE INDAGAN ALERGIAS, NIEGA ALERGIAS';
 
+    const antiStr =
+      simAnticoagulado === 'SI'
+        ? ` PACIENTE REFIERE ESTAR ANTICOAGULADO CON ${
+            simMedAnticoagulante.trim().toUpperCase() || 'MEDICAMENTO NO ESPECIFICADO'
+          }.`
+        : '';
+
     note = note.replace(/\{GENERO_EO\}/g, e);
     note = note.replace(/\{GENERO_ALA\}/g, al);
     note = note.replace(/\{DERECHO_DEBER\}/g, `DERECHO: ${d}. DEBER: ${b}`);
     note = note.replace(/\{DERECHO\}/g, d);
     note = note.replace(/\{DEBER\}/g, b);
-    note = note.replace(/\{ALERGIAS\}/g, alerStr);
+
+    if (note.includes('{ANTICOAGULADO}')) {
+      note = note.replace(/\{ANTICOAGULADO\}/g, antiStr.trim());
+      note = note.replace(/\{ALERGIAS\}/g, alerStr);
+    } else {
+      note = note.replace(/\{ALERGIAS\}/g, `${alerStr}.${antiStr}`);
+    }
 
     templateFields.forEach((f) => {
       let val =
@@ -522,7 +596,35 @@ export const AdminPanel: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-end md:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-end md:self-auto">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImportConfig}
+            accept=".json,application/json"
+            className="hidden"
+          />
+
+          <button
+            type="button"
+            onClick={handleExportConfig}
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+            title="Descargar copia de seguridad de todas las plantillas y modificaciones"
+          >
+            <Download className="w-3.5 h-3.5 text-blue-600" />
+            <span>Respaldar JSON</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+            title="Restaurar plantillas desde un archivo JSON previamente respaldado"
+          >
+            <Upload className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Cargar JSON</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setIsChangingPin(!isChangingPin)}
@@ -792,6 +894,7 @@ export const AdminPanel: React.FC<Props> = ({
                 <span className="font-mono text-blue-600 font-semibold">{'{GENERO_ALA}'}</span>
                 <span className="font-mono text-blue-600 font-semibold">{'{DERECHO_DEBER}'}</span>
                 <span className="font-mono text-blue-600 font-semibold">{'{ALERGIAS}'}</span>
+                <span className="font-mono text-blue-600 font-semibold">{'{ANTICOAGULADO}'}</span>
                 {templateFields.map((f) => (
                   <span key={f.id} className="font-mono text-emerald-600 font-semibold">{`{${f.id}}`}</span>
                 ))}
@@ -1161,6 +1264,42 @@ export const AdminPanel: React.FC<Props> = ({
                     </div>
                   )}
                 </div>
+
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                    ¿Paciente Anticoagulado?
+                  </label>
+                  <select
+                    value={simAnticoagulado}
+                    onChange={(e) => {
+                      const val = e.target.value as 'NO' | 'SI';
+                      setSimAnticoagulado(val);
+                      if (val === 'NO') setSimMedAnticoagulante('');
+                    }}
+                    className="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold"
+                  >
+                    <option value="NO">No Anticoagulado</option>
+                    <option value="SI">Sí Anticoagulado</option>
+                  </select>
+
+                  {simAnticoagulado === 'SI' && (
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        list="sim-anticoag-list"
+                        value={simMedAnticoagulante}
+                        onChange={(e) => setSimMedAnticoagulante(e.target.value)}
+                        placeholder="Ej: Warfarina, Enoxaparina, Rivaroxabán..."
+                        className="w-full p-2 bg-white border border-blue-300 rounded-lg text-xs uppercase font-semibold"
+                      />
+                      <datalist id="sim-anticoag-list">
+                        {ANTICOAGULANTES_COMUNES.map((med) => (
+                          <option key={med} value={med} />
+                        ))}
+                      </datalist>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -1411,6 +1550,18 @@ export const AdminPanel: React.FC<Props> = ({
                       >
                         {!isDisabled ? 'Desactivar' : 'Activar'}
                       </button>
+
+                      {isBase && isOverridden && (
+                        <button
+                          type="button"
+                          onClick={() => handleResetBaseTemplate(t.id, t.title)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-xl transition cursor-pointer"
+                          title="Restablecer plantilla a los valores predeterminados de fábrica"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Restablecer</span>
+                        </button>
+                      )}
 
                       <button
                         type="button"

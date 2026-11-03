@@ -1,21 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { CustomTemplate, Gender, SavedNote } from '../../types/clinical';
-import { DERECHOS_Y_DEBERES, isOtroOption } from '../../constants/clinicalOptions';
+import {
+  DERECHOS_Y_DEBERES,
+  isOtroOption,
+  ANTICOAGULANTES_COMUNES,
+} from '../../constants/clinicalOptions';
 import { DerechoDeberSelect } from '../common/DerechoDeberSelect';
 import { NotePreview } from '../common/NotePreview';
-import { FileCode2, RefreshCw } from 'lucide-react';
+import { FileCode2, RefreshCw, RotateCcw } from 'lucide-react';
 
 interface Props {
   template: CustomTemplate;
   onSaveToHistory: (noteText: string, summary: string) => SavedNote;
+  isOverriddenBase?: boolean;
+  onRestoreBaseDefault?: () => void;
 }
 
 export const CustomTemplateModule: React.FC<Props> = ({
   template,
   onSaveToHistory,
+  isOverriddenBase = false,
+  onRestoreBaseDefault,
 }) => {
   const [genero, setGenero] = useState<Gender>('MASCULINO');
   const [derechoDeber, setDerechoDeber] = useState(DERECHOS_Y_DEBERES[2].fullString);
+  const [anticoagulado, setAnticoagulado] = useState<'NO' | 'SI'>('NO');
+  const [medAnticoagulante, setMedAnticoagulante] = useState('');
   const [tieneAlergias, setTieneAlergias] = useState(false);
   const [alergiaEsp, setAlergiaEsp] = useState('');
 
@@ -61,6 +71,13 @@ export const CustomTemplateModule: React.FC<Props> = ({
       ? `SE INDAGAN ALERGIAS, REFIERE ALERGIAS A ${alergiaEsp.trim().toUpperCase() || 'NO ESPECIFICADAS'}`
       : 'SE INDAGAN ALERGIAS, NIEGA ALERGIAS';
 
+    const antiStr =
+      anticoagulado === 'SI'
+        ? ` PACIENTE REFIERE ESTAR ANTICOAGULADO CON ${
+            medAnticoagulante.trim().toUpperCase() || 'MEDICAMENTO NO ESPECIFICADO'
+          }.`
+        : '';
+
     let result = template.templateFormat;
 
     // Replace standard placeholders
@@ -69,7 +86,13 @@ export const CustomTemplateModule: React.FC<Props> = ({
     result = result.replace(/\{DERECHO_DEBER\}/g, `DERECHO: ${d}. DEBER: ${b}`);
     result = result.replace(/\{DERECHO\}/g, d);
     result = result.replace(/\{DEBER\}/g, b);
-    result = result.replace(/\{ALERGIAS\}/g, alerStr);
+
+    if (result.includes('{ANTICOAGULADO}')) {
+      result = result.replace(/\{ANTICOAGULADO\}/g, antiStr.trim());
+      result = result.replace(/\{ALERGIAS\}/g, alerStr);
+    } else {
+      result = result.replace(/\{ALERGIAS\}/g, `${alerStr}.${antiStr}`);
+    }
 
     // Replace custom dynamic fields
     template.fields.forEach((f) => {
@@ -91,6 +114,8 @@ export const CustomTemplateModule: React.FC<Props> = ({
     setGenero('MASCULINO');
     setTieneAlergias(false);
     setAlergiaEsp('');
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     const resetVals: Record<string, string> = {};
     template.fields.forEach((f) => {
       resetVals[f.id] = f.defaultValue || (f.options ? f.options[0] : '');
@@ -102,7 +127,7 @@ export const CustomTemplateModule: React.FC<Props> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div className="flex items-center gap-2.5">
           <div className="p-2.5 bg-blue-100 text-blue-700 rounded-xl">
             <FileCode2 className="w-6 h-6" />
@@ -111,12 +136,24 @@ export const CustomTemplateModule: React.FC<Props> = ({
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-extrabold text-slate-900">{template.title}</h2>
               <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800">
-                PLANTILLA ADMINISTRADOR
+                {isOverriddenBase ? 'PLANTILLA PERSONALIZADA POR ADMIN' : 'PLANTILLA ADMINISTRADOR'}
               </span>
             </div>
             <p className="text-xs text-slate-500">{template.description}</p>
           </div>
         </div>
+
+        {isOverriddenBase && onRestoreBaseDefault && (
+          <button
+            type="button"
+            onClick={onRestoreBaseDefault}
+            className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-xl transition cursor-pointer shadow-2xs"
+            title="Volver a la versión base predeterminada de este módulo"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+            <span>Restablecer versión original</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -179,6 +216,47 @@ export const CustomTemplateModule: React.FC<Props> = ({
                     placeholder="Especifique alergias..."
                     className="w-full p-2.5 bg-white border border-amber-300 rounded-xl text-sm font-medium"
                   />
+                </div>
+              )}
+            </div>
+
+            {/* Anticoagulación */}
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                ¿Paciente Anticoagulado?
+              </label>
+              <select
+                value={anticoagulado}
+                onChange={(e) => {
+                  const val = e.target.value as 'NO' | 'SI';
+                  setAnticoagulado(val);
+                  if (val === 'NO') setMedAnticoagulante('');
+                }}
+                className="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold bg-white"
+              >
+                <option value="NO">No Anticoagulado</option>
+                <option value="SI">Sí Anticoagulado</option>
+              </select>
+
+              {anticoagulado === 'SI' && (
+                <div className="mt-2.5 animate-in fade-in duration-150">
+                  <label className="block text-[11px] font-bold text-blue-900 uppercase mb-1">
+                    Nombre del Medicamento Anticoagulante que Toma:
+                  </label>
+                  <input
+                    type="text"
+                    list="anticoagulantes-custom-list"
+                    value={medAnticoagulante}
+                    onChange={(e) => setMedAnticoagulante(e.target.value)}
+                    placeholder="Ej: Warfarina, Rivaroxabán, Apixabán, Dabigatrán, Enoxaparina, ASA..."
+                    className="w-full p-2.5 bg-blue-50/60 border border-blue-300 rounded-xl text-xs sm:text-sm font-semibold text-blue-950 focus:ring-2 focus:ring-blue-500 uppercase"
+                    required
+                  />
+                  <datalist id="anticoagulantes-custom-list">
+                    {ANTICOAGULANTES_COMUNES.map((med) => (
+                      <option key={med} value={med} />
+                    ))}
+                  </datalist>
                 </div>
               )}
             </div>
