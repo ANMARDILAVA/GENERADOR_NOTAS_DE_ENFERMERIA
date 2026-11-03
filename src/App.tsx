@@ -75,40 +75,7 @@ export default function App() {
       );
     }
 
-    // 2. Custom Templates or Overridden Base Templates
-    const customTmpl = adminConfig.customTemplates.find((t) => t.id === activeModule);
-    if (customTmpl) {
-      return (
-        <CustomTemplateModule
-          template={customTmpl}
-          onSaveToHistory={(text, summary) =>
-            handleSaveToHistory(customTmpl.id, text, summary)
-          }
-        />
-      );
-    }
-
-    const baseOverride = adminConfig.templateOverrides?.[activeModule];
-    if (baseOverride) {
-      const baseTmpl = ALL_BASE_TEMPLATES.find((b) => b.id === activeModule);
-      if (baseTmpl) {
-        const merged: CustomTemplate = {
-          ...baseTmpl,
-          ...baseOverride,
-          fields: baseOverride.fields || baseTmpl.fields,
-        };
-        return (
-          <CustomTemplateModule
-            template={merged}
-            onSaveToHistory={(text, summary) =>
-              handleSaveToHistory(merged.id, text, summary)
-            }
-          />
-        );
-      }
-    }
-
-    // 3. Native Modules
+    // 2. Native Clinical Modules (Priority: Always render rich clinical modules)
     switch (activeModule) {
       case 'curacion':
         return (
@@ -206,22 +173,35 @@ export default function App() {
             }
           />
         );
-      case 'menu':
-      default:
-        return (
-          <ModuleMenu
-            onSelectModule={(id) => {
-              setActiveModule(id);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            adminConfig={adminConfig}
-            onOpenAdmin={() => {
-              setActiveModule('admin');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
-        );
     }
+
+    // 3. User-created Custom Templates
+    const customTmpl = adminConfig.customTemplates.find((t) => t.id === activeModule);
+    if (customTmpl) {
+      return (
+        <CustomTemplateModule
+          template={customTmpl}
+          onSaveToHistory={(text, summary) =>
+            handleSaveToHistory(customTmpl.id, text, summary)
+          }
+        />
+      );
+    }
+
+    // 4. Default: Menu
+    return (
+      <ModuleMenu
+        onSelectModule={(id) => {
+          setActiveModule(id);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        adminConfig={adminConfig}
+        onOpenAdmin={() => {
+          setActiveModule('admin');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    );
   };
 
   return (

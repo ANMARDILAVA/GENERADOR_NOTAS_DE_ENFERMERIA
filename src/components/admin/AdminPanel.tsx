@@ -462,7 +462,7 @@ export const AdminPanel: React.FC<Props> = ({
                 setPinInput(e.target.value);
                 setPinError(false);
               }}
-              placeholder="PIN (por defecto: 1234)"
+              placeholder=""
               className={`w-full p-3.5 text-center text-xl font-mono tracking-widest rounded-2xl border ${
                 pinError
                   ? 'border-rose-400 bg-rose-50 text-rose-900 focus:ring-rose-400'

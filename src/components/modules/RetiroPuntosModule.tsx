@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Gender, SavedNote } from '../../types/clinical';
-import { DERECHOS_Y_DEBERES } from '../../constants/clinicalOptions';
+import { DERECHOS_Y_DEBERES, ANTICOAGULANTES_COMUNES } from '../../constants/clinicalOptions';
 import { DerechoDeberSelect } from '../common/DerechoDeberSelect';
 import { NotePreview } from '../common/NotePreview';
 import { Scissors, Sparkles, RefreshCw } from 'lucide-react';
@@ -13,6 +13,8 @@ export const RetiroPuntosModule: React.FC<Props> = ({ onSaveToHistory }) => {
   const [genero, setGenero] = useState<Gender>('MASCULINO');
   const [zona, setZona] = useState('REGIÓN SUPERCILIAR DERECHA');
   const [cantidadPuntos, setCantidadPuntos] = useState('4');
+  const [anticoagulado, setAnticoagulado] = useState<'NO' | 'SI'>('NO');
+  const [medAnticoagulante, setMedAnticoagulante] = useState('');
   const [posicion, setPosicion] = useState('SENTADO');
   const [cubiculo, setCubiculo] = useState('1');
   const [derechoDeber, setDerechoDeber] = useState(DERECHOS_Y_DEBERES[2].fullString);
@@ -29,7 +31,11 @@ export const RetiroPuntosModule: React.FC<Props> = ({ onSaveToHistory }) => {
     const e = genero === 'MASCULINO' ? 'O' : 'A';
     const { d, b } = parseDD(derechoDeber);
 
-    const text = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA Y ORIENTAD${e}, TRAE ORDEN PARA RETIRO DE PUNTOS. SE VERIFICA ORDEN Y SE FIRMA CONSENTIMIENTO.
+    const antiStr = anticoagulado === 'SI'
+      ? ` PACIENTE REFIERE ESTAR ANTICOAGULADO CON ${medAnticoagulante.trim().toUpperCase() || 'MEDICAMENTO NO ESPECIFICADO'}.`
+      : '';
+
+    const text = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA Y ORIENTAD${e}, TRAE ORDEN PARA RETIRO DE PUNTOS. SE VERIFICA ORDEN Y SE FIRMA CONSENTIMIENTO.${antiStr}
 
 SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
 
@@ -45,6 +51,8 @@ SALE PACIENTE ALERTA Y ORIENTAD${e}, CON RECOMENDACIONES DE CUIDADO EN CASA.`.to
     setGenero('MASCULINO');
     setZona('');
     setCantidadPuntos('');
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     setPosicion('SENTADO');
     setCubiculo('1');
     setNoteOutput('');
@@ -54,6 +62,8 @@ SALE PACIENTE ALERTA Y ORIENTAD${e}, CON RECOMENDACIONES DE CUIDADO EN CASA.`.to
     setGenero('FEMENINO');
     setZona('MENTÓN');
     setCantidadPuntos('5');
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     setPosicion('SUPINO');
     setCubiculo('1');
   };
@@ -182,6 +192,46 @@ SALE PACIENTE ALERTA Y ORIENTAD${e}, CON RECOMENDACIONES DE CUIDADO EN CASA.`.to
                   onChange={(e) => setCubiculo(e.target.value)}
                   className="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold"
                 />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                  ¿Paciente Anticoagulado?
+                </label>
+                <select
+                  value={anticoagulado}
+                  onChange={(e) => {
+                    const val = e.target.value as 'NO' | 'SI';
+                    setAnticoagulado(val);
+                    if (val === 'NO') setMedAnticoagulante('');
+                  }}
+                  className="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold bg-white"
+                >
+                  <option value="NO">No Anticoagulado</option>
+                  <option value="SI">Sí Anticoagulado (Precaución hemostasia / sangrado al retirar sutura)</option>
+                </select>
+
+                {anticoagulado === 'SI' && (
+                  <div className="mt-2.5 animate-in fade-in duration-150">
+                    <label className="block text-[11px] font-bold text-red-700 uppercase mb-1">
+                      Medicamento Anticoagulante que Toma:
+                    </label>
+                    <input
+                      type="text"
+                      list="anticoagulantes-ret-list"
+                      value={medAnticoagulante}
+                      onChange={(e) => setMedAnticoagulante(e.target.value)}
+                      placeholder="Ej: Warfarina, Rivaroxabán, Apixabán, Dabigatrán, ASA..."
+                      className="w-full p-2.5 bg-red-50/70 border border-red-300 rounded-xl text-xs sm:text-sm font-semibold text-red-950 focus:ring-2 focus:ring-red-500"
+                      autoFocus
+                    />
+                    <datalist id="anticoagulantes-ret-list">
+                      {ANTICOAGULANTES_COMUNES.map((med) => (
+                        <option key={med} value={med} />
+                      ))}
+                    </datalist>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -4,6 +4,7 @@ import {
   DERMATOLOGOS,
   DERECHOS_Y_DEBERES,
   RECOMENDACIONES_DERMATOLOGIA,
+  ANTICOAGULANTES_COMUNES,
 } from '../../constants/clinicalOptions';
 import { DerechoDeberSelect } from '../common/DerechoDeberSelect';
 import { NotePreview } from '../common/NotePreview';
@@ -24,6 +25,9 @@ type ProcType =
 export const DermatologiaModule: React.FC<Props> = ({ onSaveToHistory }) => {
   const [genero, setGenero] = useState<Gender>('MASCULINO');
   const [profesional, setProfesional] = useState(DERMATOLOGOS[0]);
+  const [profesionalOtro, setProfesionalOtro] = useState('');
+  const [anticoagulado, setAnticoagulado] = useState<'NO' | 'SI'>('NO');
+  const [medAnticoagulante, setMedAnticoagulante] = useState('');
   const [derechoDeber, setDerechoDeber] = useState(DERECHOS_Y_DEBERES[2].fullString);
   const [riesgoCaida, setRiesgoCaida] = useState('BAJO');
   const [riesgoPiel, setRiesgoPiel] = useState('BAJO');
@@ -125,16 +129,23 @@ export const DermatologiaModule: React.FC<Props> = ({ onSaveToHistory }) => {
   useEffect(() => {
     const e = genero === 'MASCULINO' ? 'O' : 'A';
     const { d, b } = parseDD(derechoDeber);
-    const dr = profesional || '[PROFESIONAL NO SELECCIONADO]';
+    const drFinal = profesional === 'OTRO'
+      ? (profesionalOtro.trim().toUpperCase() || 'MÉDICO ESPECIALISTA')
+      : profesional;
+    const dr = drFinal || '[PROFESIONAL NO SELECCIONADO]';
     const alerStr = tieneAlergias
       ? `SE INDAGAN ALERGIAS, PACIENTE REFIERE ALERGIAS A ${alergiaEsp.trim().toUpperCase() || 'NO ESPECIFICADAS'}`
       : 'SE INDAGAN ALERGIAS, PACIENTE NIEGA ALERGIAS';
+
+    const antiStr = anticoagulado === 'SI'
+      ? ` PACIENTE REFIERE ESTAR ANTICOAGULADO CON ${medAnticoagulante.trim().toUpperCase() || 'MEDICAMENTO NO ESPECIFICADO'}.`
+      : '';
 
     let txt = '';
 
     if (selectedProc === 'NASOLARINGOSCOPIA') {
       if (dr === 'DR JULIO TORRES' || dr === 'DRA JULIANA ANGULO') {
-        txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${alerStr}. SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${riesgoCaida}. RIESGO DE LESIÓN DE PIEL: ${riesgoPiel}.
+        txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${alerStr}.${antiStr} SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${riesgoCaida}. RIESGO DE LESIÓN DE PIEL: ${riesgoPiel}.
 
 SE DILIGENCIA CONSENTIMIENTO INFORMADO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
 
@@ -142,7 +153,7 @@ SE UBICA AL PACIENTE EN LA CAMILLA EN POSICIÓN FOWLER. EL ESPECIALISTA REALIZA 
 
 SE REALIZA LA LIMPIEZA Y DESINFECCIÓN DEL EQUIPO BIOMÉDICO DE ACUERDO CON EL PROTOCOLO INSTITUCIONAL. EL PACIENTE EGRESA DE LA SALA POR SUS PROPIOS MEDIOS, EN CONDICIONES ÓPTIMAS: CONSCIENTE, ALERTA Y ORIENTAD${e}.`;
       } else if (dr === 'DR JORGE HERRERA') {
-        txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${alerStr}. SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${riesgoCaida}. RIESGO DE LESIÓN DE PIEL: ${riesgoPiel}.
+        txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${alerStr}.${antiStr} SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${riesgoCaida}. RIESGO DE LESIÓN DE PIEL: ${riesgoPiel}.
 
 SE DILIGENCIA CONSENTIMIENTO INFORMADO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
 
@@ -150,14 +161,14 @@ SE UBICA AL PACIENTE EN LA CAMILLA EN POSICIÓN FOWLER. EL DR. HERRERA REALIZA P
 
 SE REALIZA LA LIMPIEZA Y DESINFECCIÓN DEL EQUIPO BIOMÉDICO DE ACUERDO CON EL PROTOCOLO INSTITUCIONAL. EL PACIENTE EGRESA DE LA SALA DE PROCEDIMIENTOS POR SUS PROPIOS MEDIOS, EN CONDICIONES ÓPTIMAS: CONSCIENTE, ALERTA Y ORIENTAD${e}.`;
       } else {
-        txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${alerStr}. SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${riesgoCaida}. RIESGO DE LESIÓN DE PIEL: ${riesgoPiel}.
+        txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${alerStr}.${antiStr} SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${riesgoCaida}. RIESGO DE LESIÓN DE PIEL: ${riesgoPiel}.
 
 SE DILIGENCIA CONSENTIMIENTO INFORMADO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
 
 SE UBICA EN POSICIÓN FOWLER. ${dr} REALIZA NASOLARINGOSCOPIA, FINALIZANDO SIN COMPLICACIONES. SE ENTREGA FÓRMULA MÉDICA Y SE BRINDAN RECOMENDACIONES DE CUIDADO.`;
       }
     } else {
-      txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${alerStr}. SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${riesgoCaida}. RIESGO DE LESIÓN DE PIEL: ${riesgoPiel}.\n\nSE DILIGENCIA CONSENTIMIENTO INFORMADO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).\n\n`;
+      txt = `INGRESA PACIENTE A SALA DE PROCEDIMIENTOS MENORES, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS. PACIENTE ES VALORADO POR ${dr}. ${alerStr}.${antiStr} SE VALORA RIESGO DE CAÍDA Y RIESGO DE LESIÓN DE PIEL: RIESGO DE CAÍDA: ${riesgoCaida}. RIESGO DE LESIÓN DE PIEL: ${riesgoPiel}.\n\nSE DILIGENCIA CONSENTIMIENTO INFORMADO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).\n\n`;
 
       txt += `SE UBICA AL PACIENTE EN CAMILLA EN POSICIÓN ${posicion}, EMPLEANDO TÉCNICA ASÉPTICA, SE REALIZA LIMPIEZA EN ${zonaAnatomica.trim().toUpperCase()}.\n`;
 
@@ -212,6 +223,9 @@ SE UBICA EN POSICIÓN FOWLER. ${dr} REALIZA NASOLARINGOSCOPIA, FINALIZANDO SIN C
   }, [
     genero,
     profesional,
+    profesionalOtro,
+    anticoagulado,
+    medAnticoagulante,
     derechoDeber,
     riesgoCaida,
     riesgoPiel,
@@ -247,6 +261,10 @@ SE UBICA EN POSICIÓN FOWLER. ${dr} REALIZA NASOLARINGOSCOPIA, FINALIZANDO SIN C
 
   const handleClear = () => {
     setGenero('MASCULINO');
+    setProfesional(DERMATOLOGOS[0]);
+    setProfesionalOtro('');
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     setZonaAnatomica('');
     setTieneAlergias(false);
     setAlergiaEsp('');
@@ -257,6 +275,9 @@ SE UBICA EN POSICIÓN FOWLER. ${dr} REALIZA NASOLARINGOSCOPIA, FINALIZANDO SIN C
   const autoFillDemo = () => {
     setGenero('FEMENINO');
     setProfesional(DERMATOLOGOS[0]);
+    setProfesionalOtro('');
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     handleSelectProcedure('BIOPSIA');
     setZonaAnatomica('ALA NASAL DERECHA');
     setInstrumental('PUNCH DE 3 MM');
@@ -351,10 +372,29 @@ SE UBICA EN POSICIÓN FOWLER. ${dr} REALIZA NASOLARINGOSCOPIA, FINALIZANDO SIN C
               >
                 {DERMATOLOGOS.map((doc) => (
                   <option key={doc} value={doc}>
-                    {doc}
+                    {doc === 'OTRO' ? 'OTRO (DIGITAR NOMBRE DEL MÉDICO)' : doc}
                   </option>
                 ))}
               </select>
+
+              {profesional === 'OTRO' && (
+                <div className="mt-2.5 p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-1.5 animate-in fade-in duration-150">
+                  <label className="block text-[11px] font-bold text-indigo-900 uppercase">
+                    Nombre del Médico Especialista:
+                  </label>
+                  <input
+                    type="text"
+                    value={profesionalOtro}
+                    onChange={(e) => setProfesionalOtro(e.target.value)}
+                    placeholder="Escriba el nombre del médico (ej: Dr. Carlos Morales, Dra. Andrea Ruiz)..."
+                    className="w-full p-2.5 bg-white border border-indigo-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                    autoFocus
+                  />
+                  <p className="text-[11px] text-indigo-700 font-medium">
+                    El nombre ingresado se actualizará inmediatamente en la nota de enfermería en tiempo real.
+                  </p>
+                </div>
+              )}
             </div>
 
             <DerechoDeberSelect value={derechoDeber} onChange={setDerechoDeber} />
@@ -409,6 +449,47 @@ SE UBICA EN POSICIÓN FOWLER. ${dr} REALIZA NASOLARINGOSCOPIA, FINALIZANDO SIN C
                     placeholder="Especifique alergias..."
                     className="w-full p-2 bg-white border border-amber-300 rounded-lg text-xs"
                   />
+                </div>
+              )}
+            </div>
+
+            {/* Anticoagulación */}
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                ¿Paciente Anticoagulado?
+              </label>
+              <select
+                value={anticoagulado}
+                onChange={(e) => {
+                  const val = e.target.value as 'NO' | 'SI';
+                  setAnticoagulado(val);
+                  if (val === 'NO') setMedAnticoagulante('');
+                }}
+                className="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-800"
+              >
+                <option value="NO">No Anticoagulado</option>
+                <option value="SI">Sí Anticoagulado (Precaución hemostasia / sangrado)</option>
+              </select>
+
+              {anticoagulado === 'SI' && (
+                <div className="mt-2.5 animate-in fade-in duration-150">
+                  <label className="block text-[11px] font-bold text-indigo-900 uppercase mb-1">
+                    Medicamento Anticoagulante que Toma:
+                  </label>
+                  <input
+                    type="text"
+                    list="anticoagulantes-derma-list"
+                    value={medAnticoagulante}
+                    onChange={(e) => setMedAnticoagulante(e.target.value)}
+                    placeholder="Ej: Warfarina, Rivaroxabán, Apixabán, Dabigatrán, ASA..."
+                    className="w-full p-2.5 bg-white border border-indigo-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500"
+                    autoFocus
+                  />
+                  <datalist id="anticoagulantes-derma-list">
+                    {ANTICOAGULANTES_COMUNES.map((med) => (
+                      <option key={med} value={med} />
+                    ))}
+                  </datalist>
                 </div>
               )}
             </div>
@@ -710,6 +791,13 @@ SE UBICA EN POSICIÓN FOWLER. ${dr} REALIZA NASOLARINGOSCOPIA, FINALIZANDO SIN C
               </div>
             </div>
 
+            {/* Datalist de dermatólogos para sugerencias en retiro de puntos */}
+            <datalist id="dermatologos-list">
+              {DERMATOLOGOS.filter((d) => d !== 'OTRO').map((doc) => (
+                <option key={doc} value={doc} />
+              ))}
+            </datalist>
+
             {selectedRecoms.includes('RETIRO DE PUNTOS POR MÉDICO') && (
               <div>
                 <label className="block text-[10px] font-bold text-indigo-900 uppercase mb-1">
@@ -717,10 +805,11 @@ SE UBICA EN POSICIÓN FOWLER. ${dr} REALIZA NASOLARINGOSCOPIA, FINALIZANDO SIN C
                 </label>
                 <input
                   type="text"
+                  list="dermatologos-list"
                   value={medicoRetiraPuntos}
                   onChange={(e) => setMedicoRetiraPuntos(e.target.value)}
-                  placeholder="Nombre del médico tratante"
-                  className="w-full p-2 border border-indigo-300 rounded-xl text-xs"
+                  placeholder="Seleccione o escriba el nombre del médico tratante"
+                  className="w-full p-2 border border-indigo-300 rounded-xl text-xs font-semibold"
                 />
               </div>
             )}
@@ -796,7 +885,10 @@ SE UBICA EN POSICIÓN FOWLER. ${dr} REALIZA NASOLARINGOSCOPIA, FINALIZANDO SIN C
               type="button"
               onClick={() => {
                 if (noteOutput.trim()) {
-                  onSaveToHistory(noteOutput, `Dermatología (${nombreProc})`);
+                  const drSummary = profesional === 'OTRO'
+                    ? (profesionalOtro.trim() || 'Médico no listado')
+                    : profesional;
+                  onSaveToHistory(noteOutput, `Dermatología: ${nombreProc} (${drSummary})`);
                 }
               }}
               className="flex-1 py-3.5 px-6 rounded-xl shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 font-extrabold text-sm tracking-wide transition cursor-pointer active:scale-[0.99] flex items-center justify-center gap-2"

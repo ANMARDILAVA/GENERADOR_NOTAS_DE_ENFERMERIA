@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Gender, SavedNote, VitalSigns } from '../../types/clinical';
-import { DERECHOS_Y_DEBERES, POSICIONES_PACIENTE } from '../../constants/clinicalOptions';
+import { DERECHOS_Y_DEBERES, POSICIONES_PACIENTE, ANTICOAGULANTES_COMUNES } from '../../constants/clinicalOptions';
 import { DerechoDeberSelect } from '../common/DerechoDeberSelect';
 import { VitalSignsModal } from '../common/VitalSignsModal';
 import { NotePreview } from '../common/NotePreview';
@@ -24,6 +24,8 @@ export const ObservacionModule: React.FC<Props> = ({ onSaveToHistory }) => {
   const [genero, setGenero] = useState<Gender>('MASCULINO');
   const [medicoRefiere, setMedicoRefiere] = useState('DR. ANDRES TORRES');
   const [motivo, setMotivo] = useState('GASTROENTERITIS AGUDA CON DESHIDRATACIÓN LEVE');
+  const [anticoagulado, setAnticoagulado] = useState<'NO' | 'SI'>('NO');
+  const [medAnticoagulante, setMedAnticoagulante] = useState('');
   const [med1, setMed1] = useState('METOCLOPRAMIDA 10 MG');
   const [dil1, setDil1] = useState('250');
 
@@ -95,6 +97,13 @@ export const ObservacionModule: React.FC<Props> = ({ onSaveToHistory }) => {
       ? `SE INDAGAN ALERGIAS, REFIERE ALERGIAS A ${alergiaEsp.trim().toUpperCase() || 'NO ESPECIFICADAS'}`
       : 'SE INDAGAN ALERGIAS, NIEGA ALERGIAS';
 
+    const antiStr =
+      anticoagulado === 'SI'
+        ? ` PACIENTE REFIERE ESTAR ANTICOAGULADO CON ${
+            medAnticoagulante.trim().toUpperCase() || 'MEDICAMENTO NO ESPECIFICADO'
+          }.`
+        : '';
+
     const d1Num = parseInt(dil1, 10) || 0;
     const d2Num = tieneMed2 ? parseInt(dil2, 10) || 0 : 0;
     const initialLiq = d1Num + d2Num;
@@ -117,7 +126,7 @@ export const ObservacionModule: React.FC<Props> = ({ onSaveToHistory }) => {
 
     const text = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA, ORIENTAD${e}, EN COMPAÑÍA DE ${medicoRefiere.trim().toUpperCase()} CON ORDEN PARA CANALIZAR Y ADMINISTRAR ${ord} COMO TRATAMIENTO PARA ${motivo.trim().toUpperCase()}.
 
-${alerStr}. SE FIRMA CONSENTIMIENTO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+${alerStr}.${antiStr} SE FIRMA CONSENTIMIENTO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
 
 SE TOMAN SIGNOS VITALES LOS CUALES ESTÁN ${svStr}. PACIENTE PRESENTA: ${sintomas.trim().toUpperCase()}. RIESGOS: CAÍDA (${riesgoCaida}), PIEL (${riesgoPiel}), DOLOR (${dolor.trim().toUpperCase()}).
 
@@ -164,6 +173,8 @@ PREVIO LAVADO DE MANOS Y BAJO TÉCNICA ASÉPTICA SE CANALIZA VENA ${vena.trim().
     setMed1('');
     setMed2('');
     setTieneMed2(false);
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     setTieneAlergias(false);
     setAlergiaEsp('');
     setSvIniTipo('NORMALES');
@@ -176,6 +187,8 @@ PREVIO LAVADO DE MANOS Y BAJO TÉCNICA ASÉPTICA SE CANALIZA VENA ${vena.trim().
     setGenero('FEMENINO');
     setMedicoRefiere('DRA. LAURA PATIÑO');
     setMotivo('CÓLICO BILIAR EN ESTUDIO');
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     setMed1('HIOSCINA 20 MG + METAMIZOL 2 G');
     setDil1('250');
     setTieneMed2(false);
@@ -379,6 +392,47 @@ PREVIO LAVADO DE MANOS Y BAJO TÉCNICA ASÉPTICA SE CANALIZA VENA ${vena.trim().
                     placeholder="Especifique alergias..."
                     className="w-full p-2 bg-white border border-amber-300 rounded-lg text-xs"
                   />
+                </div>
+              )}
+            </div>
+
+            {/* Anticoagulación */}
+            <div className="p-3 bg-red-50/50 rounded-xl border border-red-200">
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                ¿Paciente Anticoagulado?
+              </label>
+              <select
+                value={anticoagulado}
+                onChange={(e) => {
+                  const val = e.target.value as 'NO' | 'SI';
+                  setAnticoagulado(val);
+                  if (val === 'NO') setMedAnticoagulante('');
+                }}
+                className="w-full p-2 border border-slate-300 rounded-lg text-xs font-semibold bg-white"
+              >
+                <option value="NO">NO</option>
+                <option value="SI">SÍ</option>
+              </select>
+
+              {anticoagulado === 'SI' && (
+                <div className="mt-2.5 animate-fadeIn">
+                  <label className="block text-[10px] font-bold text-red-800 uppercase mb-1">
+                    Nombre del Medicamento Anticoagulante:
+                  </label>
+                  <input
+                    type="text"
+                    list="anticoagulantes-obs-list"
+                    value={medAnticoagulante}
+                    onChange={(e) => setMedAnticoagulante(e.target.value)}
+                    placeholder="Ej: Warfarina, Enoxaparina, Rivaroxabán..."
+                    className="w-full p-2 bg-white border border-red-300 rounded-lg text-xs font-semibold uppercase focus:ring-2 focus:ring-red-400 focus:outline-none"
+                    required
+                  />
+                  <datalist id="anticoagulantes-obs-list">
+                    {ANTICOAGULANTES_COMUNES.map((med) => (
+                      <option key={med} value={med} />
+                    ))}
+                  </datalist>
                 </div>
               )}
             </div>

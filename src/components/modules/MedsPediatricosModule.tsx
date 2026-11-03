@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SavedNote } from '../../types/clinical';
-import { DERECHOS_Y_DEBERES, POSICIONES_PACIENTE, SITIOS_PEDIATRICOS } from '../../constants/clinicalOptions';
+import { DERECHOS_Y_DEBERES, POSICIONES_PACIENTE, SITIOS_PEDIATRICOS, ANTICOAGULANTES_COMUNES } from '../../constants/clinicalOptions';
 import { DerechoDeberSelect } from '../common/DerechoDeberSelect';
 import { NotePreview } from '../common/NotePreview';
 import { Baby, Sparkles, RefreshCw, PlusCircle, Users } from 'lucide-react';
@@ -13,6 +13,8 @@ export const MedsPediatricosModule: React.FC<Props> = ({ onSaveToHistory }) => {
   const [acomp, setAcomp] = useState('MADRE');
   const [acompOtro, setAcompOtro] = useState('');
   const [motivo, setMotivo] = useState('AMIGDALITIS AGUDA BACTERIANA');
+  const [anticoagulado, setAnticoagulado] = useState<'NO' | 'SI'>('NO');
+  const [medAnticoagulante, setMedAnticoagulante] = useState('');
   const [tieneAlergias, setTieneAlergias] = useState(false);
   const [alergiaEsp, setAlergiaEsp] = useState('');
   const [derechoDeber, setDerechoDeber] = useState(DERECHOS_Y_DEBERES[2].fullString);
@@ -54,6 +56,13 @@ export const MedsPediatricosModule: React.FC<Props> = ({ onSaveToHistory }) => {
       ? `REFIERE ALERGIA A ${alergiaEsp.trim().toUpperCase() || 'NO ESPECIFICADAS'}`
       : 'NIEGA ALERGIAS';
 
+    const antiStr =
+      anticoagulado === 'SI'
+        ? ` ACUDIENTE REFIERE QUE EL MENOR ESTÁ ANTICOAGULADO CON ${
+            medAnticoagulante.trim().toUpperCase() || 'MEDICAMENTO NO ESPECIFICADO'
+          }.`
+        : '';
+
     const s1Final = sitio1 === 'OTRO' ? sitio1Otro.trim().toUpperCase() || 'SITIO ESPECIFICADO' : sitio1;
     const s2Final = sitio2 === 'OTRO' ? sitio2Otro.trim().toUpperCase() || 'SITIO ESPECIFICADO' : sitio2;
 
@@ -71,7 +80,7 @@ export const MedsPediatricosModule: React.FC<Props> = ({ onSaveToHistory }) => {
 
     const text = `INGRESA PACIENTE PEDIÁTRICO A SALA DE ENFERMERÍA, SE OBSERVA ALERTA, ACTIVO, EN COMPAÑÍA DE SU ${finalAcomp}. PRESENTA ORDEN PARA ADMINISTRAR ${ord} COMO TRATAMIENTO PARA ${motivo.trim().toUpperCase()}.
 
-SE REVISA ORDEN MÉDICA, SE INDAGAN ALERGIAS, ACUDIENTE ${alerStr}. SE OBTIENE FIRMA DE CONSENTIMIENTO INFORMADO POR PARTE DEL ADULTO RESPONSABLE. SE REALIZA LA VERIFICACIÓN DE LOS 13 CORRECTOS PARA LA ADMINISTRACIÓN SEGURA. SE EXPLICA EL PROCEDIMIENTO AL MENOR Y A SU ACOMPAÑANTE, Y SE BRINDA EDUCACIÓN SOBRE EL MEDICAMENTO A ADMINISTRAR. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+SE REVISA ORDEN MÉDICA, SE INDAGAN ALERGIAS, ACUDIENTE ${alerStr}.${antiStr} SE OBTIENE FIRMA DE CONSENTIMIENTO INFORMADO POR PARTE DEL ADULTO RESPONSABLE. SE REALIZA LA VERIFICACIÓN DE LOS 13 CORRECTOS PARA LA ADMINISTRACIÓN SEGURA. SE EXPLICA EL PROCEDIMIENTO AL MENOR Y A SU ACOMPAÑANTE, Y SE BRINDA EDUCACIÓN SOBRE EL MEDICAMENTO A ADMINISTRAR. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
 
 PREVIO LAVADO DE MANOS, SE UBICA AL PACIENTE EN EL CUBÍCULO N.º ${cubiculo}, EN CAMILLA, EN POSICIÓN ${finalPos}, CON APOYO Y CONTENCIÓN POR PARTE DE SU ${finalAcomp}. SE VALORAN ESCALAS DE RIESGO: CAÍDA (${riesgoCaida}), LESIÓN DE PIEL (${riesgoPiel}). ${adm}
 
@@ -85,6 +94,8 @@ SE INDICA AL ACUDIENTE PERMANECER CON EL MENOR 10 MINUTOS EN OBSERVACIÓN. TRANS
     setAcomp('MADRE');
     setAcompOtro('');
     setMotivo('');
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     setTieneAlergias(false);
     setAlergiaEsp('');
     setMed1('');
@@ -109,6 +120,8 @@ SE INDICA AL ACUDIENTE PERMANECER CON EL MENOR 10 MINUTOS EN OBSERVACIÓN. TRANS
   const autoFillDemo = () => {
     setAcomp('MADRE');
     setMotivo('CRISIS ASMATIFORME / BRONCOESPASMO');
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     setTieneAlergias(false);
     setMed1('BETAMETASONA');
     setDosis1('4 MG');
@@ -226,6 +239,47 @@ SE INDICA AL ACUDIENTE PERMANECER CON EL MENOR 10 MINUTOS EN OBSERVACIÓN. TRANS
                     placeholder="Especifique medicamento o sustancia alérgica..."
                     className="w-full p-2.5 bg-white border border-amber-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500"
                   />
+                </div>
+              )}
+            </div>
+
+            {/* Anticoagulación */}
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                ¿El paciente pediátrico se encuentra anticoagulado?
+              </label>
+              <select
+                value={anticoagulado}
+                onChange={(e) => {
+                  const val = e.target.value as 'NO' | 'SI';
+                  setAnticoagulado(val);
+                  if (val === 'NO') setMedAnticoagulante('');
+                }}
+                className="w-full p-2.5 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold bg-white"
+              >
+                <option value="NO">No Anticoagulado</option>
+                <option value="SI">Sí Anticoagulado (Precaución hemostasia)</option>
+              </select>
+
+              {anticoagulado === 'SI' && (
+                <div className="mt-2.5 animate-in fade-in duration-150">
+                  <label className="block text-[11px] font-bold text-pink-900 uppercase mb-1">
+                    Medicamento Anticoagulante que Toma el Menor:
+                  </label>
+                  <input
+                    type="text"
+                    list="anticoagulantes-ped-list"
+                    value={medAnticoagulante}
+                    onChange={(e) => setMedAnticoagulante(e.target.value)}
+                    placeholder="Ej: Enoxaparina, Warfarina, ASA..."
+                    className="w-full p-2.5 bg-pink-50/70 border border-pink-300 rounded-xl text-xs sm:text-sm font-semibold text-pink-950 focus:ring-2 focus:ring-pink-500"
+                    autoFocus
+                  />
+                  <datalist id="anticoagulantes-ped-list">
+                    {ANTICOAGULANTES_COMUNES.map((med) => (
+                      <option key={med} value={med} />
+                    ))}
+                  </datalist>
                 </div>
               )}
             </div>

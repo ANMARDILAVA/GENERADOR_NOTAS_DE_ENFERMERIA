@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Gender, SavedNote } from '../../types/clinical';
-import { DERECHOS_Y_DEBERES, POSICIONES_PACIENTE } from '../../constants/clinicalOptions';
+import { DERECHOS_Y_DEBERES, POSICIONES_PACIENTE, ANTICOAGULANTES_COMUNES } from '../../constants/clinicalOptions';
 import { DerechoDeberSelect } from '../common/DerechoDeberSelect';
 import { NotePreview } from '../common/NotePreview';
 import { Bandage, Sparkles, RefreshCw } from 'lucide-react';
@@ -13,6 +13,8 @@ export const CuracionModule: React.FC<Props> = ({ onSaveToHistory }) => {
   const [genero, setGenero] = useState<Gender>('MASCULINO');
   const [areaLesion, setAreaLesion] = useState('REGIÓN SACRA');
   const [causa, setCausa] = useState('ÚLCERA POR PRESIÓN GRADO II');
+  const [anticoagulado, setAnticoagulado] = useState<'NO' | 'SI'>('NO');
+  const [medAnticoagulante, setMedAnticoagulante] = useState('');
   const [tieneAlergias, setTieneAlergias] = useState(false);
   const [alergiaEsp, setAlergiaEsp] = useState('');
   const [derechoDeber, setDerechoDeber] = useState(DERECHOS_Y_DEBERES[2].fullString);
@@ -60,6 +62,10 @@ export const CuracionModule: React.FC<Props> = ({ onSaveToHistory }) => {
       ? `SE INDAGAN ALERGIAS, REFIERE ALERGIAS A ${alergiaEsp.trim().toUpperCase() || 'NO ESPECIFICADAS'}`
       : 'SE INDAGAN ALERGIAS, NO REFIERE ALERGIAS';
 
+    const antiStr = anticoagulado === 'SI'
+      ? ` PACIENTE REFIERE ESTAR ANTICOAGULADO CON ${medAnticoagulante.trim().toUpperCase() || 'MEDICAMENTO NO ESPECIFICADO'}.`
+      : '';
+
     const infStr =
       infeccion === 'Presentes'
         ? `PRESENTES (${infeccionDetalle.trim().toUpperCase() || 'ERITEMA Y CALOR LOCAL'})`
@@ -69,7 +75,7 @@ export const CuracionModule: React.FC<Props> = ({ onSaveToHistory }) => {
 
     const text = `INGRESA PACIENTE A SALA DE ENFERMERÍA, ALERTA, ORIENTAD${e}, CONSCIENTE, CAMINANDO POR SUS PROPIOS MEDIOS, TRAE ORDEN PARA REALIZAR CURACIÓN DE LESIÓN EN ${areaLesion.toUpperCase()} SECUNDARIO A ${causa.toUpperCase()}.
 
-SE REVISA ORDEN MÉDICA, SE CONFIRMA PRESCRIPCIÓN. ${alerStr}. SE OBTIENE FIRMA DE CONSENTIMIENTO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
+SE REVISA ORDEN MÉDICA, SE CONFIRMA PRESCRIPCIÓN. ${alerStr}.${antiStr} SE OBTIENE FIRMA DE CONSENTIMIENTO. SE SOCIALIZA DERECHO Y DEBER: (DERECHO: ${d}. DEBER: ${b}).
 
 SE UBICA ${al} PACIENTE EN CAMILLA, POSICIÓN ${finalPos}. SE VALORA HERIDA:
 LOCALIZACIÓN: ${localizacion.toUpperCase()}
@@ -91,6 +97,8 @@ SE DAN INDICACIONES Y SIGNOS DE ALARMA. PRÓXIMA CURACIÓN EN ${proximaCuracionD
     setGenero('MASCULINO');
     setAreaLesion('');
     setCausa('');
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     setTieneAlergias(false);
     setAlergiaEsp('');
     setPosicion('DECÚBITO PRONO (O VENTRAL)');
@@ -114,6 +122,8 @@ SE DAN INDICACIONES Y SIGNOS DE ALARMA. PRÓXIMA CURACIÓN EN ${proximaCuracionD
     setGenero('FEMENINO');
     setAreaLesion('MALEOLO EXTERNO DERECHO');
     setCausa('ÚLCERA VENOSA CRÓNICA');
+    setAnticoagulado('NO');
+    setMedAnticoagulante('');
     setTieneAlergias(true);
     setAlergiaEsp('PENICILINA Y YODO');
     setPosicion('DECÚBITO SUPINO (O DORSAL)');
@@ -247,6 +257,47 @@ SE DAN INDICACIONES Y SIGNOS DE ALARMA. PRÓXIMA CURACIÓN EN ${proximaCuracionD
                     placeholder="Especifique alergias (Ej: Látex, Yodopovidona, Cintas adhesivas)..."
                     className="w-full p-2.5 bg-white border border-amber-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-amber-500"
                   />
+                </div>
+              )}
+            </div>
+
+            {/* Anticoagulación */}
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              <label className="block text-xs font-bold text-slate-600 uppercase mb-1">
+                ¿Paciente Anticoagulado?
+              </label>
+              <select
+                value={anticoagulado}
+                onChange={(e) => {
+                  const val = e.target.value as 'NO' | 'SI';
+                  setAnticoagulado(val);
+                  if (val === 'NO') setMedAnticoagulante('');
+                }}
+                className="w-full p-2.5 border border-slate-300 rounded-xl text-sm font-semibold bg-white"
+              >
+                <option value="NO">No Anticoagulado</option>
+                <option value="SI">Sí Anticoagulado (Precaución hemostasia / sangrado)</option>
+              </select>
+
+              {anticoagulado === 'SI' && (
+                <div className="mt-2.5 animate-in fade-in duration-150">
+                  <label className="block text-[11px] font-bold text-blue-900 uppercase mb-1">
+                    Medicamento Anticoagulante que Toma:
+                  </label>
+                  <input
+                    type="text"
+                    list="anticoagulantes-cur-list"
+                    value={medAnticoagulante}
+                    onChange={(e) => setMedAnticoagulante(e.target.value)}
+                    placeholder="Ej: Warfarina, Rivaroxabán, Apixabán, Dabigatrán, ASA..."
+                    className="w-full p-2.5 bg-blue-50/60 border border-blue-300 rounded-xl text-xs sm:text-sm font-semibold text-blue-950 focus:ring-2 focus:ring-blue-500"
+                    autoFocus
+                  />
+                  <datalist id="anticoagulantes-cur-list">
+                    {ANTICOAGULANTES_COMUNES.map((med) => (
+                      <option key={med} value={med} />
+                    ))}
+                  </datalist>
                 </div>
               )}
             </div>

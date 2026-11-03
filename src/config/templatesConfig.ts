@@ -243,7 +243,7 @@ SE HACE RECUENTO DE MATERIAL Y GASAS COMPLETO Y CONFORME. SE REALIZA SUTURA CON 
 
 REGISTRADO EN SEGUIMIENTO PREMIUM. SALE PACIENTE EN ÓPTIMAS CONDICIONES.`,
     fields: [
-      { id: 'PROFESIONAL', label: 'Profesional Especialista', type: 'text', defaultValue: 'DR JULIO TORRES' },
+      { id: 'PROFESIONAL', label: 'Profesional Especialista', type: 'text', defaultValue: 'DRA DAYANA ARENAS' },
       { id: 'PROCEDIMIENTO', label: 'Procedimiento', type: 'text', defaultValue: 'BIOPSIA DE LESIÓN CON PUNCH DE 4 MM' },
       { id: 'ZONA', label: 'Zona Anatómica', type: 'text', defaultValue: 'REGIÓN MALAR DERECHA' },
       { id: 'ANESTESIA', label: 'Anestesia', type: 'text', defaultValue: 'ROXICAINA 1% S/E Y BUPIVACAÍNA' },
@@ -395,13 +395,20 @@ export function getAdminConfig(): AdminConfig {
     const raw = localStorage.getItem(ADMIN_STORAGE_KEY);
     if (!raw) return DEFAULT_ADMIN_CONFIG;
     const parsed = JSON.parse(raw);
+    const overrides = parsed.templateOverrides && typeof parsed.templateOverrides === 'object' ? { ...parsed.templateOverrides } : {};
+    delete overrides['medicamentos-no-programada'];
+    delete overrides['medicamentos-ce'];
+
+    const rawCustom = Array.isArray(parsed.customTemplates) ? parsed.customTemplates : [];
+    const cleanCustom = rawCustom.filter((t: CustomTemplate) => t.id !== 'medicamentos-no-programada' && t.id !== 'medicamentos-ce');
+
     return {
       adminPin: parsed.adminPin || DEFAULT_ADMIN_CONFIG.adminPin,
       institutionName: parsed.institutionName || DEFAULT_ADMIN_CONFIG.institutionName,
       disabledModuleIds: Array.isArray(parsed.disabledModuleIds) ? parsed.disabledModuleIds : [],
       deletedTemplateIds: Array.isArray(parsed.deletedTemplateIds) ? parsed.deletedTemplateIds : [],
-      templateOverrides: parsed.templateOverrides && typeof parsed.templateOverrides === 'object' ? parsed.templateOverrides : {},
-      customTemplates: Array.isArray(parsed.customTemplates) ? parsed.customTemplates : [],
+      templateOverrides: overrides,
+      customTemplates: cleanCustom,
     };
   } catch (err) {
     console.error('Error reading admin config from localStorage:', err);
